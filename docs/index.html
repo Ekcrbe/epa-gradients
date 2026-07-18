@@ -42,6 +42,46 @@
     </section>
 
     <p id="app-status" class="app-status" role="status"></p>
+
+    <section class="survival card" aria-label="Elite-tail survival ratio">
+      <div class="section-head">
+        <h2>Elite-tail depth</h2>
+        <p class="section-sub" id="survival-sub"></p>
+      </div>
+      <div id="survival-chart" class="chart-wrap"></div>
+      <p class="section-note">Survival ratio R(x) = a region's share of teams above each skill level &divide; the world's. Above 1 means a deeper elite tail than average; below 1, thinner. Log axis, capped where the global tail gets too thin to trust.</p>
+    </section>
+
+    <section class="allregions card" aria-label="All regions">
+      <div class="section-head">
+        <h2>All regions</h2>
+        <div class="ar-controls">
+          <label class="ar-ctl">Sort
+            <select id="sort-select">
+              <option value="meanD_desc">Avg difficulty (hard &rarr; easy)</option>
+              <option value="meanD_asc">Avg difficulty (easy &rarr; hard)</option>
+              <option value="crossover_asc">Crossover (low &rarr; high)</option>
+              <option value="top_desc">Top-heaviness (elite depth)</option>
+              <option value="n_desc">Team count (n)</option>
+            </select>
+          </label>
+          <label class="ar-ctl">Min n
+            <input type="range" id="minn-range" min="1" max="50" step="1" value="20">
+            <output id="minn-out" class="year-out">20</output>
+          </label>
+          <div class="viewtoggle" role="group" aria-label="View">
+            <button type="button" id="view-heatmap" class="active" aria-pressed="true">Heatmap</button>
+            <button type="button" id="view-grid" aria-pressed="false">Small multiples</button>
+          </div>
+        </div>
+      </div>
+      <div class="ar-meta">
+        <p class="section-sub" id="ar-count"></p>
+        <div class="hm-legend" id="hm-legend"></div>
+      </div>
+      <div id="heatmap" class="view-panel"></div>
+      <div id="smallmultiples" class="view-panel" hidden></div>
+    </section>
   </main>
 
   <footer class="site-footer">

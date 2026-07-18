@@ -68,6 +68,11 @@ def compute_region(region_vals, global_sorted, q_fine, q_coarse, p_fine, p_coars
     d_fine = displacement(rs, q_fine, p_fine)
     d_coarse = displacement(rs, q_coarse, p_coarse)
     crossings = find_crossings(p_fine, d_fine)
+    # Only a genuinely mixed region (meaningfully easier AND harder) has a
+    # crossover; near-monotone regions report None (see crossover_min_side).
+    tau = settings["metrics"]["crossover_min_side"]
+    is_mixed = d_fine.min() <= -tau and d_fine.max() >= tau
+    crossover = primary_crossing(crossings) if is_mixed else None
     lo, hi = bootstrap.band(rs, q_fine, p_fine, settings, rng)
     top = p_fine > 0.9
     return {
@@ -76,7 +81,7 @@ def compute_region(region_vals, global_sorted, q_fine, q_coarse, p_fine, p_coars
         "D_coarse": d_coarse,
         "band_lo": lo,
         "band_hi": hi,
-        "crossover": primary_crossing(crossings),
+        "crossover": crossover,
         "crossings": crossings,
         "mean_D": float(d_fine.mean()),
         "top_heaviness": float(d_fine[top].mean()),

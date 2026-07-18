@@ -39,6 +39,10 @@ ci_high = 97.5
 # Regions with fewer than this many teams get a point estimate but no bootstrap
 # band (a 1-2 team resample is degenerate and would look falsely certain).
 min_band_n = 5
+# A crossover is only reported when the region is meaningfully easier somewhere
+# AND harder somewhere (|D| reaches this on both sides); otherwise it is
+# near-monotone and crossover is null. Avoids spurious crossings from tiny blips.
+crossover_min_side = 0.02
 # Survival ratio R(x) is only reported where the global tail is thick enough.
 survival_min_global_frac = 0.01
 survival_min_global_teams = 5
