@@ -1,12 +1,23 @@
 // Data layer: loads precomputed JSON artifacts. No runtime API calls.
 // Paths are relative to the document, so this works under /epa-gradients/.
 
-async function getJSON(path) {
-  // Revalidate so a rebuilt dataset is always picked up fresh (a cheap 304 when
-  // unchanged) rather than served stale from cache.
-  const res = await fetch(path, { cache: "no-cache" });
-  if (!res.ok) throw new Error(`${path}: HTTP ${res.status}`);
-  return res.json();
+async function getJSON(path, tries = 3) {
+  // Revalidate so a rebuilt dataset is picked up fresh (a cheap 304 when
+  // unchanged). Retry transient failures (e.g. a GitHub Pages CDN 503) with a
+  // short backoff so a hiccup doesn't brick the page; 4xx fails fast.
+  let lastErr;
+  for (let attempt = 1; attempt <= tries; attempt++) {
+    try {
+      const res = await fetch(path, { cache: "no-cache" });
+      if (res.ok) return await res.json();
+      if (res.status < 500) throw new Error(`${path}: HTTP ${res.status}`);
+      lastErr = new Error(`${path}: HTTP ${res.status}`);
+    } catch (err) {
+      lastErr = err;
+    }
+    if (attempt < tries) await new Promise((r) => setTimeout(r, 350 * attempt));
+  }
+  throw lastErr;
 }
 
 let _manifest = null;
