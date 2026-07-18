@@ -11,22 +11,25 @@ csv_url = "https://raw.githubusercontent.com/avgupta456/statbotics-csvs/{commit}
 api_base = "https://api-statbotics.iterativerefinement.com/v3"
 api_years = [2024, 2025, 2026]
 api_page_size = 1000
-# Earliest CSV year to retain. The 2009 snapshot needs the 2005-2008 window.
+# Earliest CSV year to retain. The 2008 postseason needs the 2005-2008 window.
 csv_min_year = 2005
 csv_max_year = 2023
 
 [model]
-snapshot_start = 2009
-snapshot_end = 2027          # 2027 preseason = current view (window 2023-2026)
-skip_years = [2020, 2021]    # partially / fully canceled seasons
-# Linear-recency weights applied to calendar offsets S-1, S-2, S-3, S-4,
-# with skipped years dropped and remaining weights renormalized.
+# Snapshots are labeled by POSTSEASON year Y: the competitive state after season
+# Y, from the WMA of the 4 most recent completed seasons up to and including Y.
+snapshot_start = 2008
+snapshot_end = 2026          # 2026 postseason = current view (window 2023-2026)
+skip_years = [2020, 2021]    # canceled: no snapshot, and dropped from every window
+# Linear-recency weights over the window [Y-3, Y-2, Y-1, Y]: anchor year Y gets 4,
+# Y-1 gets 3, ... with skipped years dropped and remaining weights renormalized.
+# A region's team set for postseason Y is the teams that competed in Y (the most
+# recent window season); their strength is the WMA over the window.
 wma_weights = [4, 3, 2, 1]
-min_window_seasons = 1       # a team needs >=1 valid in-window season to be scored
 
 [regions]
-sc_pch_years = [2023, 2024]  # South Carolina counted toward pch these snapshot years
-sc_fsc_from = 2025           # ...toward fsc from this snapshot year onward
+sc_pch_years = [2023, 2024]  # South Carolina competed in pch these seasons
+sc_fsc_from = 2025           # ...in fsc from this season onward
 pa_active_cutoff = 2012      # PA teams active in/after this year use given district
 
 [metrics]

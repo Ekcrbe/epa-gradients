@@ -28,20 +28,22 @@ def ensure_dirs() -> None:
 
 
 def snapshot_years(settings: dict) -> list[int]:
-    """Snapshot seasons we produce difficulty curves for (inclusive range)."""
+    """Postseason years we produce difficulty curves for (canceled years excluded)."""
     m = settings["model"]
-    return list(range(m["snapshot_start"], m["snapshot_end"] + 1))
+    skip = set(m["skip_years"])
+    return [y for y in range(m["snapshot_start"], m["snapshot_end"] + 1) if y not in skip]
 
 
-def valid_seasons_before(year: int, settings: dict, count: int | None = None) -> list[int]:
-    """Calendar window S-4..S-1 with skipped (canceled) seasons removed.
+def wma_window(year: int, settings: dict, count: int | None = None) -> list[int]:
+    """WMA window for postseason ``year``: [Y-3, Y-2, Y-1, Y] minus canceled seasons.
 
-    Returns the seasons in ascending order. ``count`` defaults to the number of
-    WMA weights configured (4).
+    Returns seasons ascending; the last (``year`` itself, the anchor / most recent
+    season) carries the largest recency weight. ``count`` defaults to the number
+    of configured WMA weights (4).
     """
     m = settings["model"]
     skip = set(m["skip_years"])
     if count is None:
         count = len(m["wma_weights"])
-    window = [year - k for k in range(count, 0, -1)]  # e.g. [S-4, S-3, S-2, S-1]
+    window = [year - off for off in range(count - 1, -1, -1)]  # [Y-3, ..., Y-1, Y]
     return [y for y in window if y not in skip]

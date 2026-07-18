@@ -28,9 +28,8 @@ export async function loadRegion(id) {
   return _regions.get(id);
 }
 
-// The 4-year strength window for a snapshot season (skip years removed).
+// The 4-year WMA window for a postseason [Y-3 .. Y] with canceled years removed.
 export function strengthWindow(year, skipYears) {
   const skip = new Set(skipYears || []);
-  const win = [year - 4, year - 3, year - 2, year - 1].filter((y) => !skip.has(y));
-  return win;
+  return [year - 3, year - 2, year - 1, year].filter((y) => !skip.has(y));
 }

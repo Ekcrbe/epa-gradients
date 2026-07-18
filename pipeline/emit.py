@@ -49,7 +49,6 @@ def run(out: dict, settings: dict) -> None:
 
     p_fine = out["p_fine"]
     p_coarse = out["p_coarse"]
-    scopes = out["scopes"]
     results = out["results"]
     globals_by_scope = out["globals"]
 
@@ -68,7 +67,9 @@ def run(out: dict, settings: dict) -> None:
         if not by_scope:
             continue
         name, rtype = name_type(rid)
-        years_present = sorted(s for s in by_scope if s != "pooled")
+        # Scope keys are "<base>:<mode>"; collect the distinct postseason years.
+        bases = {s.split(":", 1)[0] for s in by_scope}
+        years_present = sorted(int(b) for b in bases if b != "pooled")
         latest = years_present[-1] if years_present else None
 
         # Per-region detail file.
@@ -106,8 +107,8 @@ def run(out: dict, settings: dict) -> None:
         region_index.append({
             "id": rid, "name": name, "type": rtype,
             "years": years_present,
-            "n_latest": by_scope[latest]["n"] if latest else None,
-            "n_pooled": by_scope.get("pooled", {}).get("n"),
+            "n_latest": (by_scope.get(f"{latest}:wma") or {}).get("n") if latest else None,
+            "n_pooled": (by_scope.get("pooled:wma") or {}).get("n"),
         })
 
     region_index.sort(key=lambda r: (-(r["n_latest"] or 0), r["name"]))
@@ -125,13 +126,14 @@ def run(out: dict, settings: dict) -> None:
         },
         "model": {
             "snapshot_years": config.snapshot_years(settings),
+            "modes": out["modes"],
             "pooled": True,
             "wma_weights": settings["model"]["wma_weights"],
             "skip_years": settings["model"]["skip_years"],
             "min_band_n": settings["metrics"]["min_band_n"],
         },
         "grid": {"p_fine": _rlist(p_fine, 4), "p_coarse": _rlist(p_coarse, 4)},
-        "scopes": [_scope_key(s) for s in scopes],
+        "scopes": list(globals_by_scope.keys()),
         "globals": {
             _scope_key(s): {"n": g["n"], "q_fine": _rlist(g["q_fine"], 1)}
             for s, g in globals_by_scope.items()

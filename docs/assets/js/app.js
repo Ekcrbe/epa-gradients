@@ -26,6 +26,7 @@ const els = {
   year: document.getElementById("year-range"),
   yearOut: document.getElementById("year-out"),
   pooled: document.getElementById("pooled-toggle"),
+  single: document.getElementById("single-toggle"),
   scopeCaption: document.getElementById("scope-caption"),
   hero: document.querySelector(".hero"),
   title: document.getElementById("hero-title"),
@@ -48,7 +49,7 @@ const els = {
   sm: document.getElementById("smallmultiples"),
 };
 
-const state = { regionId: null, year: 2027, pooled: false, sort: "meanD_desc", minN: 20, view: "heatmap" };
+const state = { regionId: null, year: 2026, pooled: false, single: false, sort: "meanD_desc", minN: 20, view: "heatmap" };
 let manifest = null, summary = null, currentRegion = null;
 
 init().catch((err) => { els.status.textContent = `Failed to load data: ${err.message}`; });
@@ -94,6 +95,10 @@ function wireEvents() {
     els.year.disabled = state.pooled;
     renderSelected(); renderAllRegions();
   });
+  els.single.addEventListener("change", () => {
+    state.single = els.single.checked;
+    renderSelected(); renderAllRegions();
+  });
   els.sort.addEventListener("change", () => { state.sort = els.sort.value; renderAllRegions(); });
   els.minn.addEventListener("input", () => {
     state.minN = +els.minn.value; els.minnOut.textContent = els.minn.value; renderAllRegions();
@@ -118,7 +123,10 @@ function setView(v) {
   renderAllRegions();
 }
 
-function scopeKey() { return state.pooled ? "pooled" : String(state.year); }
+function scopeKey() {
+  const base = state.pooled ? "pooled" : String(state.year);
+  return `${base}:${state.single ? "single" : "wma"}`;
+}
 
 async function selectRegion(id, scroll) {
   state.regionId = id;
@@ -137,9 +145,10 @@ async function selectRegion(id, scroll) {
 const onSelect = (id) => selectRegion(id, true);
 
 function scopeLabel() {
-  if (state.pooled) return "pooled — all seasons 2009–2027";
+  if (state.pooled) return `pooled — all postseasons 2008–2026 · ${state.single ? "single-year EPA" : "4-year WMA"}`;
+  if (state.single) return `${state.year} postseason · single-year EPA`;
   const win = strengthWindow(state.year, manifest.model?.skip_years);
-  return `${state.year} preseason · form from ${win[0]}–${win[win.length - 1]}`;
+  return `${state.year} postseason · WMA of ${win[0]}–${win[win.length - 1]}`;
 }
 
 // --- selected-region views (hero + survival) ---
@@ -148,13 +157,17 @@ function renderSelected() {
   if (!region) return;
   const scope = scopeKey();
   const sc = region.scopes[scope];
-  els.scopeCaption.textContent = state.pooled ? "(all-time)" : "(preseason)";
+  els.scopeCaption.textContent = state.pooled ? "(all-time)" : "(postseason)";
   els.title.textContent = `${region.name} vs. the world`;
   els.survivalSub.textContent = `${region.name} · ${state.pooled ? "pooled" : state.year}`;
 
   if (!sc) {
+    const canceled = (manifest.model?.skip_years || []).includes(state.year);
     const span = `${region.years[0]}–${region.years[region.years.length - 1]}`;
-    els.chart.innerHTML = `<div class="empty-state">${region.name} has no teams in ${state.year}.<br>Available: ${span}.</div>`;
+    const msg = canceled
+      ? `The ${state.year} season was canceled — no snapshot.`
+      : `${region.name} has no teams in ${state.year}.<br>Available: ${span}.`;
+    els.chart.innerHTML = `<div class="empty-state">${msg}</div>`;
     els.survivalChart.innerHTML = "";
     els.chips.innerHTML = ""; els.legend.innerHTML = ""; els.readout.textContent = ""; els.status.textContent = "";
     return;

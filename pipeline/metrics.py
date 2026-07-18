@@ -12,6 +12,8 @@ import pandas as pd
 from . import bootstrap, config
 
 POOLED = "pooled"
+# Strength modes: 4-year weighted moving average vs. the anchor season alone.
+MODES = {"wma": "strength_wma", "single": "strength_single"}
 
 
 def _ecdf_right(sorted_vals: np.ndarray, x: np.ndarray) -> np.ndarray:
@@ -100,40 +102,43 @@ def build(strength: pd.DataFrame, settings: dict) -> dict:
     p_coarse = (np.arange(n_coarse) + 0.5) / n_coarse
     rng = np.random.default_rng(m["bootstrap_seed"])
 
-    scopes: list = config.snapshot_years(settings) + [POOLED]
+    base_scopes: list = config.snapshot_years(settings) + [POOLED]
     region_ids = sorted(strength["region"].dropna().unique())
 
     results: dict[str, dict] = {rid: {} for rid in region_ids}
     globals_by_scope: dict = {}
 
-    for scope in scopes:
-        if scope == POOLED:
-            gvals = strength["strength"].to_numpy(dtype=np.float64)
-            sub = strength
-        else:
-            sub = strength[strength["snapshot_year"] == scope]
-            gvals = sub["strength"].to_numpy(dtype=np.float64)
-        if len(gvals) == 0:
-            continue
-        global_sorted = np.sort(gvals)
-        q_fine = np.quantile(global_sorted, p_fine)
-        q_coarse = np.quantile(global_sorted, p_coarse)
-        globals_by_scope[scope] = {"n": int(len(global_sorted)), "q_fine": q_fine}
-
-        by_region = {rid: g["strength"].to_numpy(dtype=np.float64)
-                     for rid, g in sub.dropna(subset=["region"]).groupby("region")}
-        for rid in region_ids:
-            rvals = by_region.get(rid)
-            if rvals is None or len(rvals) == 0:
+    for mode, col in MODES.items():
+        for base in base_scopes:
+            sub = strength if base == POOLED else strength[strength["snapshot_year"] == base]
+            gvals = sub[col].to_numpy(dtype=np.float64)
+            gvals = gvals[~np.isnan(gvals)]
+            if len(gvals) == 0:
                 continue
-            results[rid][scope] = compute_region(
-                rvals, global_sorted, q_fine, q_coarse, p_fine, p_coarse, settings, rng
-            )
+            key = f"{base}:{mode}"
+            global_sorted = np.sort(gvals)
+            q_fine = np.quantile(global_sorted, p_fine)
+            q_coarse = np.quantile(global_sorted, p_coarse)
+            globals_by_scope[key] = {"n": int(len(global_sorted)), "q_fine": q_fine}
+
+            by_region = {rid: g[col].to_numpy(dtype=np.float64)
+                         for rid, g in sub.dropna(subset=["region"]).groupby("region")}
+            for rid in region_ids:
+                rvals = by_region.get(rid)
+                if rvals is None:
+                    continue
+                rvals = rvals[~np.isnan(rvals)]
+                if len(rvals) == 0:
+                    continue
+                results[rid][key] = compute_region(
+                    rvals, global_sorted, q_fine, q_coarse, p_fine, p_coarse, settings, rng
+                )
 
     return {
         "p_fine": p_fine,
         "p_coarse": p_coarse,
-        "scopes": scopes,
+        "base_scopes": base_scopes,
+        "modes": list(MODES),
         "region_ids": region_ids,
         "results": results,
         "globals": globals_by_scope,
@@ -147,8 +152,9 @@ def run(settings: dict) -> dict:
     out = build(ts, settings)
     n_cells = sum(len(v) for v in out["results"].values())
     n_bands = sum(1 for v in out["results"].values() for r in v.values() if r["band_lo"] is not None)
-    print(f"  metrics: {len(out['region_ids'])} regions x {len(out['scopes'])} scopes "
-          f"-> {n_cells:,} region-scope cells, {n_bands:,} with bootstrap bands")
+    n_scopes = len(out["base_scopes"]) * len(out["modes"])
+    print(f"  metrics: {len(out['region_ids'])} regions x {n_scopes} scopes "
+          f"({len(out['modes'])} modes) -> {n_cells:,} region-scope cells, {n_bands:,} bands")
     return out
 
 

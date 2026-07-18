@@ -27,9 +27,13 @@ flips from easier to harder. A secondary **survival ratio**
 `R(x) = (1 − F_region(x)) / (1 − F_global(x))` (log axis, tail-capped) probes the
 elite tail where percentile differences compress.
 
-A team's strength entering season *S* is a linear-recency **weighted moving
-average** (weights 4:3:2:1) of its unitless EPA over the four prior seasons
-`S-4…S-1`, with the canceled 2020/2021 seasons dropped and weights renormalized.
+Snapshots are labeled by **postseason** year (2008–2026): the competitive state
+after that season. A region's teams are those that *competed in that season*, so
+`n` reflects current depth rather than long-defunct teams. Each team's strength
+is a linear-recency **weighted moving average** (weights 4:3:2:1) of its unitless
+EPA over the four most recent seasons up to and including that one — or, via a
+toggle, that season's EPA alone. The canceled 2020/2021 seasons are dropped from
+every window and produce no snapshot.
 
 ## Architecture
 

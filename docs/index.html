@@ -23,9 +23,10 @@
       <div class="control scope-control">
         <label for="year-range">Season <span class="scope-mode" id="scope-caption"></span></label>
         <div class="scope-row">
-          <input type="range" id="year-range" min="2009" max="2027" step="1" value="2027">
-          <output id="year-out" class="year-out">2027</output>
+          <input type="range" id="year-range" min="2008" max="2026" step="1" value="2026">
+          <output id="year-out" class="year-out">2026</output>
           <label class="pooled-toggle"><input type="checkbox" id="pooled-toggle"> Pooled (all-time)</label>
+          <label class="pooled-toggle"><input type="checkbox" id="single-toggle"> Single-year EPA</label>
         </div>
       </div>
     </section>
@@ -93,10 +94,10 @@
         <p><code>D(p) &gt; 0</code> means a team at that worldwide skill level ranks <em>lower</em> within the region than it does worldwide &mdash; locally <strong>harder</strong>. <code>D(p) &lt; 0</code> is locally <strong>easier</strong>. The zero-crossing is the skill level where a region flips from easier to harder; it is only reported for regions that are meaningfully easier <em>and</em> harder somewhere (near-monotone regions show none).</p>
 
         <h3>Team strength</h3>
-        <p>Strength is Statbotics&rsquo; <strong>unitless EPA</strong> &mdash; an Elo-style rating (~1500 average) that is comparable across seasons, unlike raw game-point EPA. A team&rsquo;s strength entering a season is a linear-recency <strong>weighted moving average</strong> (weights 4:3:2:1) of its unitless EPA over the four prior seasons. The canceled <strong>2020 and 2021</strong> seasons are dropped and the remaining weights renormalized. Teams with no prior-season track record (e.g. rookies) are excluded from that season.</p>
+        <p>Each snapshot is a <strong>postseason</strong> (2008&ndash;2026): the competitive state after that season. A region&rsquo;s teams are those that <em>competed in that season</em> &mdash; so the count reflects the region&rsquo;s current depth, not long-defunct teams. Strength is Statbotics&rsquo; <strong>unitless EPA</strong> (an Elo-style, cross-season-comparable rating, ~1500 average). By default each team&rsquo;s strength is a linear-recency <strong>weighted moving average</strong> (weights 4:3:2:1) of its unitless EPA over the four most recent seasons up to and including that one, which smooths a living team&rsquo;s rating; the <em>Single-year EPA</em> toggle uses that season&rsquo;s EPA alone. The canceled <strong>2020 and 2021</strong> seasons are dropped from every window (and produce no snapshot).</p>
 
         <h3>Regions</h3>
-        <p>Present-day boundaries are applied to every season back to 2009. Districts are mapped by team state (multi-state districts such as New England, Chesapeake, and Mid-Atlantic included). Two exceptions are encoded explicitly: <strong>South Carolina</strong> (its own region through 2022, Peachtree in 2023&ndash;24, FIRST South Carolina from 2025) and <strong>Pennsylvania</strong> (split between Mid-Atlantic and non-district). Non-district teams are grouped by US state, with Qu&eacute;bec on its own and other countries grouped by country.</p>
+        <p>Present-day boundaries are applied to every season back to 2008. Districts are mapped by team state (multi-state districts such as New England, Chesapeake, and Mid-Atlantic included). Two exceptions are encoded explicitly: <strong>South Carolina</strong> (its own region through 2022, Peachtree in 2023&ndash;24, FIRST South Carolina from 2025) and <strong>Pennsylvania</strong> (split between Mid-Atlantic and non-district). Non-district teams are grouped by US state, with Qu&eacute;bec and Ontario as their own regions and other countries grouped by country.</p>
 
         <h3>Baseline &amp; uncertainty</h3>
         <p>The worldwide baseline is the distribution of <em>all</em> teams for that season (or pooled across all seasons), including the region itself. The shaded band is a <strong>95% bootstrap</strong> confidence interval (the region resampled against a fixed world). Small regions are noisy: those with fewer than five teams show no band, and <code>n</code> is shown everywhere &mdash; read small samples with the band and count in mind.</p>
