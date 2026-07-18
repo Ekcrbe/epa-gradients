@@ -1,5 +1,6 @@
 // Hero displacement chart: D(p) with diverging fill, bootstrap band,
 // zero line, zero-crossing marker, and hover readout. Uses the global d3.
+import { ordinal } from "./format.js";
 
 const M_MIN = 0.08;
 
@@ -113,11 +114,11 @@ export function renderHero(el, manifest, region, scope) {
       const regPct = Math.round((p[i] - D[i]) * 100);
       const epa = q[i] != null ? Math.round(q[i]) : null;
       tip.innerHTML =
-        `<div class="tt-p">${Math.round(p[i] * 100)}th worldwide percentile</div>` +
+        `<div class="tt-p">${ordinal(Math.round(p[i] * 100))} worldwide percentile</div>` +
         (epa != null ? `<div class="tt-row">≈ ${epa} unitless EPA</div>` : "") +
         `<div class="tt-row">D = <span class="${harder ? "tt-hard" : "tt-easy"}">${harder ? "+" : ""}${dPts.toFixed(1)} pts</span> — ` +
         `${harder ? "harder" : "easier"} here</div>` +
-        `<div class="tt-row">ranks ~${regPct}th within ${region.name}</div>`;
+        `<div class="tt-row">ranks ~${ordinal(regPct)} within ${region.name}</div>`;
       tip.style.opacity = 1;
       const tx = m.left + px + 14;
       tip.style.left = `${Math.min(tx, width - 230)}px`;

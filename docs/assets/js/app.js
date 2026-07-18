@@ -5,6 +5,7 @@ import { renderHeatmap } from "./heatmap.js";
 import { renderSmallMultiples } from "./smallmultiples.js";
 import { renderSurvival } from "./survival.js";
 import { divergingColor } from "./theme.js";
+import { ordinal } from "./format.js";
 
 const TYPE_LABEL = { district: "Districts", state: "States / provinces", country: "Countries" };
 const TYPE_ORDER = ["district", "state", "country"];
@@ -176,8 +177,8 @@ function describe(sc) {
   if (sc.crossover != null) {
     const xp = Math.round(sc.crossover * 100);
     return D[n - 1] + D[n - 2] > 0
-      ? `Easier than the world for lower-skill teams but harder for elite teams — the flip is near the ${xp}th percentile.`
-      : `Harder than the world for lower-skill teams but easier for elite teams — the flip is near the ${xp}th percentile.`;
+      ? `Easier than the world for lower-skill teams but harder for elite teams — the flip is near the ${ordinal(xp)} percentile.`
+      : `Harder than the world for lower-skill teams but easier for elite teams — the flip is near the ${ordinal(xp)} percentile.`;
   }
   return "A mix of locally harder and easier zones across the skill range.";
 }

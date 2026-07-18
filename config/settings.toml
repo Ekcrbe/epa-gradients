@@ -43,6 +43,9 @@ min_band_n = 5
 # AND harder somewhere (|D| reaches this on both sides); otherwise it is
 # near-monotone and crossover is null. Avoids spurious crossings from tiny blips.
 crossover_min_side = 0.02
+# Crossovers in the bottom decile are not reported: sub-10th-percentile
+# performance is noisy year-over-year and a flip there is not a notable fact.
+crossover_min_p = 0.10
 # Survival ratio R(x) is only reported where the global tail is thick enough.
 survival_min_global_frac = 0.01
 survival_min_global_teams = 5

@@ -1,6 +1,7 @@
 // Diverging heatmap: rows = regions (pre-sorted/filtered by the caller),
 // columns = coarse skill-percentile bins, color = displacement D centered at 0.
 import { divergingColor, isDark } from "./theme.js";
+import { ordinal } from "./format.js";
 
 const truncate = (s, n) => (s.length > n ? s.slice(0, n - 1) + "…" : s);
 
@@ -72,7 +73,7 @@ export function renderHeatmap(el, { manifest, rows, M, selectedId, onSelect }) {
       const j = Math.max(0, Math.min(ncol - 1, Math.floor((mx - labelW) / cellW)));
       const d = r.D_coarse[j] * 100;
       tip.innerHTML = `<div class="tt-p">${r.name}</div>` +
-        `<div class="tt-row">${Math.round(pc[j] * 100)}th pct · ` +
+        `<div class="tt-row">${ordinal(Math.round(pc[j] * 100))} pct · ` +
         `<span class="${d >= 0 ? "tt-hard" : "tt-easy"}">${d >= 0 ? "+" : ""}${d.toFixed(1)} pts</span></div>`;
       tip.style.opacity = 1;
       const [ex, ey] = d3.pointer(event, el);

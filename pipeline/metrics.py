@@ -73,6 +73,10 @@ def compute_region(region_vals, global_sorted, q_fine, q_coarse, p_fine, p_coars
     tau = settings["metrics"]["crossover_min_side"]
     is_mixed = d_fine.min() <= -tau and d_fine.max() >= tau
     crossover = primary_crossing(crossings) if is_mixed else None
+    # Drop bottom-decile crossovers: sub-10th-percentile depth is noisy and a
+    # flip there is not a notable fact to report.
+    if crossover is not None and crossover < settings["metrics"]["crossover_min_p"]:
+        crossover = None
     lo, hi = bootstrap.band(rs, q_fine, p_fine, settings, rng)
     top = p_fine > 0.9
     return {

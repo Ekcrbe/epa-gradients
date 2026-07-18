@@ -64,6 +64,11 @@ US_STATES = {
 }
 
 
+# Display-name overrides for country regions (Ontario and Québec are separate
+# regions, so the remaining Canadian provinces are "Rest of Canada").
+COUNTRY_DISPLAY = {"Canada": "Rest of Canada"}
+
+
 def _slug(s: str) -> str:
     # Strip accents so e.g. "Türkiye" -> "turkiye" rather than "t_rkiye".
     ascii_s = unicodedata.normalize("NFKD", s).encode("ascii", "ignore").decode()
@@ -173,7 +178,7 @@ def classify(df: pd.DataFrame, settings: dict) -> tuple[pd.DataFrame, dict]:
         elif country:
             rid = f"co_{_slug(country)}"
             base[team] = rid
-            country_names[rid] = country
+            country_names[rid] = COUNTRY_DISPLAY.get(country, country)
         else:
             base[team] = None
             unmapped.append({"team": team, "country": country, "state": state})
