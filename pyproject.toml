@@ -1,0 +1,16 @@
+[project]
+name = "epa-gradients"
+version = "0.1.0"
+description = "Static visualizer of FRC regional competitive difficulty vs. the worldwide baseline, using EPA gradients."
+requires-python = ">=3.11"
+dependencies = [
+    "numpy>=2",
+    "pandas>=2",
+    "requests>=2",
+    "pyarrow>=15",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+# Pipeline configuration lives in config/settings.toml (read via tomllib).

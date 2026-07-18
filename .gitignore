@@ -1,0 +1,35 @@
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Editor directories
+.vscode/
+.idea/
+
+# Node (in case tooling is added later)
+node_modules/
+
+# Logs
+*.log
+
+# Claude
+*.claude/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+
+# Secrets (never commit) — The Blue Alliance API key
+config/tba_key.txt
+.env
+
+# Pipeline working data
+# The full ~21 MB source CSV is regenerable from the pinned commit; do not commit it.
+data/raw/_downloads/
+# Interim tables are regenerable from the committed raw caches.
+data/interim/

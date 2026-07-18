@@ -1,0 +1,29 @@
+# PA teams defunct before 2012, geo-assigned via TBA city/ZIP.
+# Rule (per user): north-south dividing line at PA east-west midpoint (~State
+# College longitude -77.86); east -> fma, west -> st_pa. Confirmed against the
+# empirical present-day PA ZIP clusters. city column is for traceability only.
+team,region,city
+84,fma,Towanda
+104,fma,West Chester
+284,fma,Dimock
+300,fma,Philadelphia
+398,st_pa,Ridgway
+444,fma,Philadelphia
+487,fma,Erdenheim
+528,fma,Lansdale
+563,fma,Phila
+618,fma,Philadelphia
+1113,fma,Philadelphia
+1185,st_pa,Pittsburgh
+1394,fma,Philadelphia
+1634,fma,Weatherly
+1656,fma,Haverford
+1707,st_pa,Pghp
+2223,fma,Philadelphia
+2279,st_pa,Butler
+2280,st_pa,Pittsburgh
+2558,fma,Harrisburg
+2644,st_pa,Pittsburgh
+2668,fma,Lansdale
+3108,st_pa,pttsburgh
+3629,fma,Philadelphia area

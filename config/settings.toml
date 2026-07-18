@@ -1,0 +1,45 @@
+# Configuration for the EPA-gradients offline data pipeline.
+# Read with Python's stdlib tomllib (no extra dependency).
+
+[data]
+# Historical EPA (<= 2024) comes from a pinned commit of the statbotics-csvs repo.
+csv_commit = "02113df5bc7c66655fd0496ead62ad4fc5212283"
+csv_url = "https://raw.githubusercontent.com/avgupta456/statbotics-csvs/{commit}/v3/team_years.csv"
+# 2025 and 2026 come live from the Statbotics mirror, then are cached.
+api_base = "https://api-statbotics.iterativerefinement.com/v3"
+api_years = [2025, 2026]
+api_page_size = 1000
+# Earliest CSV year to retain. The 2009 snapshot needs the 2005-2008 window.
+csv_min_year = 2005
+csv_max_year = 2024
+
+[model]
+snapshot_start = 2009
+snapshot_end = 2027          # 2027 preseason = current view (window 2023-2026)
+skip_years = [2020, 2021]    # partially / fully canceled seasons
+# Linear-recency weights applied to calendar offsets S-1, S-2, S-3, S-4,
+# with skipped years dropped and remaining weights renormalized.
+wma_weights = [4, 3, 2, 1]
+min_window_seasons = 1       # a team needs >=1 valid in-window season to be scored
+
+[regions]
+sc_pch_years = [2023, 2024]  # South Carolina counted toward pch these snapshot years
+sc_fsc_from = 2025           # ...toward fsc from this snapshot year onward
+pa_active_cutoff = 2012      # PA teams active in/after this year use given district
+
+[metrics]
+fine_grid = 199              # hero D(p) resolution over the open interval (0,1)
+coarse_bins = 40             # heatmap / small-multiples percentile bins
+bootstrap_B = 1000
+bootstrap_seed = 12345
+ci_low = 2.5
+ci_high = 97.5
+# Regions with fewer than this many teams get a point estimate but no bootstrap
+# band (a 1-2 team resample is degenerate and would look falsely certain).
+min_band_n = 5
+# Survival ratio R(x) is only reported where the global tail is thick enough.
+survival_min_global_frac = 0.01
+survival_min_global_teams = 5
+
+[emit]
+docs_data = "docs/data"

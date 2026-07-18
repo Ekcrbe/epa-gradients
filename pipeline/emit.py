@@ -1,0 +1,156 @@
+"""Serialize computed metrics into static JSON artifacts under docs/data/.
+
+Artifacts:
+    manifest.json        grids, scopes, region index, per-scope global baselines
+    summary.json         compact per region-scope (n, scalars, coarse D) for the
+                         heatmap / small-multiples / sorting
+    regions/<id>.json    full detail (fine D, bootstrap band, survival, crossings)
+                         for the hero view, lazy-loaded per region
+"""
+from __future__ import annotations
+
+import json
+import math
+import shutil
+from datetime import datetime, timezone
+
+from . import config, regions as regions_mod
+
+
+def _r(x, nd):
+    if x is None:
+        return None
+    xf = float(x)
+    if math.isnan(xf) or math.isinf(xf):
+        return None
+    return round(xf, nd)
+
+
+def _rlist(a, nd):
+    if a is None:
+        return None
+    return [_r(v, nd) for v in a]
+
+
+def _scope_key(scope) -> str:
+    return str(scope)
+
+
+def run(out: dict, settings: dict) -> None:
+    print("[emit]")
+    docs_data = config.DOCS_DATA
+    regions_dir = docs_data / "regions"
+    if regions_dir.exists():
+        shutil.rmtree(regions_dir)
+    regions_dir.mkdir(parents=True, exist_ok=True)
+
+    meta_path = config.INTERIM / "region_meta.json"
+    region_meta = json.loads(meta_path.read_text(encoding="utf-8")) if meta_path.exists() else {}
+
+    p_fine = out["p_fine"]
+    p_coarse = out["p_coarse"]
+    scopes = out["scopes"]
+    results = out["results"]
+    globals_by_scope = out["globals"]
+
+    def name_type(rid):
+        if rid in region_meta:
+            return region_meta[rid]["name"], region_meta[rid]["type"]
+        n, t = regions_mod.region_name(rid)
+        return n, t
+
+    # --- summary.json + per-region files ---
+    summary_regions: dict[str, dict] = {}
+    region_index: list[dict] = []
+
+    for rid in out["region_ids"]:
+        by_scope = results[rid]
+        if not by_scope:
+            continue
+        name, rtype = name_type(rid)
+        years_present = sorted(s for s in by_scope if s != "pooled")
+        latest = years_present[-1] if years_present else None
+
+        # Per-region detail file.
+        detail_scopes = {}
+        summary_scopes = {}
+        for scope, res in by_scope.items():
+            k = _scope_key(scope)
+            detail_scopes[k] = {
+                "n": res["n"],
+                "D": _rlist(res["D_fine"], 4),
+                "band_lo": _rlist(res["band_lo"], 4),
+                "band_hi": _rlist(res["band_hi"], 4),
+                "crossover": _r(res["crossover"], 4),
+                "crossings": [{"p": _r(c["p"], 4), "dir": c["dir"]} for c in res["crossings"]],
+                "mean_D": _r(res["mean_D"], 4),
+                "top_heaviness": _r(res["top_heaviness"], 4),
+                "survival": {
+                    "x": _rlist(res["survival"]["x"], 1),
+                    "R": _rlist(res["survival"]["R"], 3),
+                },
+            }
+            summary_scopes[k] = {
+                "n": res["n"],
+                "mean_D": _r(res["mean_D"], 4),
+                "crossover": _r(res["crossover"], 4),
+                "top_heaviness": _r(res["top_heaviness"], 4),
+                "D_coarse": _rlist(res["D_coarse"], 4),
+            }
+
+        (regions_dir / f"{rid}.json").write_text(json.dumps({
+            "id": rid, "name": name, "type": rtype, "scopes": detail_scopes,
+        }, ensure_ascii=False), encoding="utf-8")
+
+        summary_regions[rid] = {"scopes": summary_scopes}
+        region_index.append({
+            "id": rid, "name": name, "type": rtype,
+            "years": years_present,
+            "n_latest": by_scope[latest]["n"] if latest else None,
+            "n_pooled": by_scope.get("pooled", {}).get("n"),
+        })
+
+    region_index.sort(key=lambda r: (-(r["n_latest"] or 0), r["name"]))
+
+    (docs_data / "summary.json").write_text(
+        json.dumps({"regions": summary_regions}, ensure_ascii=False), encoding="utf-8"
+    )
+
+    # --- manifest.json ---
+    manifest = {
+        "build": {
+            "generated": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            "csv_commit": settings["data"]["csv_commit"],
+            "api_years": settings["data"]["api_years"],
+        },
+        "model": {
+            "snapshot_years": config.snapshot_years(settings),
+            "pooled": True,
+            "wma_weights": settings["model"]["wma_weights"],
+            "skip_years": settings["model"]["skip_years"],
+            "min_band_n": settings["metrics"]["min_band_n"],
+        },
+        "grid": {"p_fine": _rlist(p_fine, 4), "p_coarse": _rlist(p_coarse, 4)},
+        "scopes": [_scope_key(s) for s in scopes],
+        "globals": {
+            _scope_key(s): {"n": g["n"], "q_fine": _rlist(g["q_fine"], 1)}
+            for s, g in globals_by_scope.items()
+        },
+        "regions": region_index,
+    }
+    (docs_data / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False), encoding="utf-8")
+
+    n_files = len(list(regions_dir.glob("*.json")))
+    total_mb = sum(f.stat().st_size for f in docs_data.rglob("*.json")) / 1e6
+    print(f"  wrote manifest.json, summary.json, {n_files} region files "
+          f"({len(region_index)} regions) -> {total_mb:.1f} MB total")
+
+
+def main(settings: dict) -> None:
+    from . import metrics
+    out = metrics.run(settings)
+    run(out, settings)
+
+
+if __name__ == "__main__":
+    main(config.load_settings())
