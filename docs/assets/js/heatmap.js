@@ -14,8 +14,10 @@ export function renderHeatmap(el, { manifest, rows, M, selectedId, onSelect }) {
   const pc = manifest.grid.p_coarse;
   const ncol = pc.length;
   const dark = isDark();
-  const labelW = 148, rowH = 18, top = 6, bottom = 30, right = 14;
-  const width = Math.max(360, el.clientWidth || 820);
+  const width = Math.max(320, el.clientWidth || 820);
+  const narrow = width < 560;
+  const labelW = narrow ? 94 : 148, rowH = 18, top = 6, bottom = 30, right = 14;
+  const nameMax = narrow ? 12 : 20;
   const iW = width - labelW - right;
   const cellW = iW / ncol;
   const height = top + rows.length * rowH + bottom;
@@ -43,7 +45,7 @@ export function renderHeatmap(el, { manifest, rows, M, selectedId, onSelect }) {
     .attr("x", labelW - 8).attr("y", (_, ri) => top + ri * rowH + rowH / 2 + 3)
     .attr("text-anchor", "end")
     .classed("sel", (r) => r.id === selectedId)
-    .text((r) => truncate(r.name, 20));
+    .text((r) => truncate(r.name, nameMax));
   labels.selectAll("text.hm-n").data(rows).join("text")
     .attr("class", "hm-n")
     .attr("x", 2).attr("y", (_, ri) => top + ri * rowH + rowH / 2 + 3)

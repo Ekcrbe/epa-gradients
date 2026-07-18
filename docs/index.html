@@ -11,6 +11,7 @@
   <header class="site-header">
     <h1>EPA Gradients</h1>
     <p class="tagline">How locally competitive difficulty compares to the worldwide baseline across team skill &mdash; by FRC region.</p>
+    <p class="intro">Each curve is a <em>percentile displacement</em>: <span class="k-hard">red</span> means the region is locally <strong>harder</strong> than the world at that skill level, <span class="k-easy">blue</span> means <strong>easier</strong>. Pick a region and season, or click any region in the grid below to focus it. See <a href="#methodology">how it&rsquo;s computed</a>.</p>
   </header>
 
   <main>
@@ -82,6 +83,31 @@
       <div id="heatmap" class="view-panel"></div>
       <div id="smallmultiples" class="view-panel" hidden></div>
     </section>
+
+    <details id="methodology" class="methodology card">
+      <summary><h2>Methodology</h2></summary>
+      <div class="method-body">
+        <h3>The metric &mdash; percentile displacement</h3>
+        <p>With <code>F_region</code> and <code>F_global</code> the CDFs of team strength and <code>Q_global</code> the worldwide quantile function, on a worldwide-percentile axis <code>p</code>:</p>
+        <p class="formula"><code>D(p) = p &minus; F_region( Q_global(p) )</code></p>
+        <p><code>D(p) &gt; 0</code> means a team at that worldwide skill level ranks <em>lower</em> within the region than it does worldwide &mdash; locally <strong>harder</strong>. <code>D(p) &lt; 0</code> is locally <strong>easier</strong>. The zero-crossing is the skill level where a region flips from easier to harder; it is only reported for regions that are meaningfully easier <em>and</em> harder somewhere (near-monotone regions show none).</p>
+
+        <h3>Team strength</h3>
+        <p>Strength is Statbotics&rsquo; <strong>unitless EPA</strong> &mdash; an Elo-style rating (~1500 average) that is comparable across seasons, unlike raw game-point EPA. A team&rsquo;s strength entering a season is a linear-recency <strong>weighted moving average</strong> (weights 4:3:2:1) of its unitless EPA over the four prior seasons. The canceled <strong>2020 and 2021</strong> seasons are dropped and the remaining weights renormalized. Teams with no prior-season track record (e.g. rookies) are excluded from that season.</p>
+
+        <h3>Regions</h3>
+        <p>Present-day boundaries are applied to every season back to 2009. Districts are mapped by team state (multi-state districts such as New England, Chesapeake, and Mid-Atlantic included). Two exceptions are encoded explicitly: <strong>South Carolina</strong> (its own region through 2022, Peachtree in 2023&ndash;24, FIRST South Carolina from 2025) and <strong>Pennsylvania</strong> (split between Mid-Atlantic and non-district). Non-district teams are grouped by US state, with Qu&eacute;bec on its own and other countries grouped by country.</p>
+
+        <h3>Baseline &amp; uncertainty</h3>
+        <p>The worldwide baseline is the distribution of <em>all</em> teams for that season (or pooled across all seasons), including the region itself. The shaded band is a <strong>95% bootstrap</strong> confidence interval (the region resampled against a fixed world). Small regions are noisy: those with fewer than five teams show no band, and <code>n</code> is shown everywhere &mdash; read small samples with the band and count in mind.</p>
+
+        <h3>Elite-tail survival ratio</h3>
+        <p><code>R(x) = (1 &minus; F_region(x)) / (1 &minus; F_global(x))</code> compares a region&rsquo;s share of teams above each skill level to the world&rsquo;s, on a log axis, capped where the global tail gets too thin to trust. Above 1 = a deeper elite tail than average.</p>
+
+        <h3>Data</h3>
+        <p>Unitless EPA from <a href="https://www.statbotics.io/">Statbotics</a>: seasons through 2023 from a pinned commit of the <a href="https://github.com/avgupta456/statbotics-csvs">statbotics-csvs</a> dataset, and 2024&ndash;2026 from the Statbotics API. Everything is fetched, normalized, and computed offline; this page loads only precomputed static JSON and never calls an API at runtime.</p>
+      </div>
+    </details>
   </main>
 
   <footer class="site-footer">

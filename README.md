@@ -45,6 +45,24 @@ Two clean layers:
 All EPA fetching happens once and is cached under `data/raw/`, so the statistics
 and the site can be iterated without re-hitting any API.
 
+## The site
+
+- **Hero displacement curve** — `D(p)` for a selected region and season (or
+  pooled): a bold zero line, diverging shading (harder above, easier below), a
+  95% bootstrap band, the zero-crossing marker, and a hover readout. Small
+  samples (n < 5) omit the band.
+- **All regions** — a sortable **diverging heatmap** (rows = regions, columns =
+  skill-percentile bins) plus a **small-multiples** grid of mini `D(p)` panels on
+  shared axes. Sort by average difficulty, crossover, top-heaviness, or team
+  count; filter by minimum `n`; click any row or panel to focus it in the hero.
+- **Elite-tail survival ratio** — `R(x)` on a log axis for the selected region.
+- **Methodology** — an in-page explainer of the metric, strength model, region
+  rules, and uncertainty.
+
+Frontend modules live in `docs/assets/js/` (`app.js`, `data.js`, `hero.js`,
+`heatmap.js`, `smallmultiples.js`, `survival.js`, `theme.js`); D3 is vendored at
+`docs/assets/vendor/d3.v7.min.js`.
+
 ## Data sources
 
 - **≤ 2023:** the `v3/team_years.csv` table from a pinned commit of
