@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import json
 import re
+import unicodedata
 
 import pandas as pd
 
@@ -64,7 +65,9 @@ US_STATES = {
 
 
 def _slug(s: str) -> str:
-    return re.sub(r"[^a-z0-9]+", "_", s.lower()).strip("_")
+    # Strip accents so e.g. "Türkiye" -> "turkiye" rather than "t_rkiye".
+    ascii_s = unicodedata.normalize("NFKD", s).encode("ascii", "ignore").decode()
+    return re.sub(r"[^a-z0-9]+", "_", ascii_s.lower()).strip("_")
 
 
 def _opt(v):

@@ -1,13 +1,26 @@
-/* EPA Gradients — base styles. Expanded in Phase 2+. */
+/* EPA Gradients — styles */
 :root {
   color-scheme: light dark;
   --bg: #ffffff;
+  --panel: #ffffff;
   --fg: #1a1a1a;
-  --muted: #666;
+  --muted: #5f5f5f;
+  --faint: #8a8a8a;
+  --border: #e6e6e6;
   --accent: #3b6ea5;
+  --harder: #d64545;
+  --easier: #2f6fb0;
+  --band: #8a8a8a;
+  --crossover: #b9860b;
+  --grid: #eeeeee;
+  --chip-bg: #f5f5f4;
 }
 @media (prefers-color-scheme: dark) {
-  :root { --bg: #14171a; --fg: #e8e8e8; --muted: #9aa4ad; --accent: #6ea8dc; }
+  :root {
+    --bg: #14171a; --panel: #1b1f23; --fg: #e8e8e8; --muted: #9aa4ad; --faint: #7d8790;
+    --border: #2a2f35; --accent: #6ea8dc; --harder: #e77373; --easier: #5f9fd6;
+    --band: #6b7580; --crossover: #e0a83a; --grid: #232a30; --chip-bg: #232830;
+  }
 }
 
 * { box-sizing: border-box; }
@@ -15,11 +28,88 @@ html, body { margin: 0; }
 body {
   background: var(--bg);
   color: var(--fg);
-  font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
-.site-header, main, .site-footer { max-width: 1100px; margin: 0 auto; padding: 1rem 1.25rem; }
-.site-header h1 { margin: 0.2em 0 0.1em; }
-.tagline { color: var(--muted); margin: 0; }
-.placeholder { color: var(--muted); }
-.site-footer { color: var(--muted); font-size: 0.9rem; border-top: 1px solid color-mix(in srgb, var(--fg) 12%, transparent); margin-top: 2rem; }
+.site-header, main, .site-footer { max-width: 960px; margin: 0 auto; padding: 0 1.25rem; }
+.site-header { padding-top: 1.5rem; }
+.site-header h1 { margin: 0 0 0.15em; font-size: 1.7rem; letter-spacing: -0.01em; }
+.tagline { color: var(--muted); margin: 0 0 0.5rem; }
 a { color: var(--accent); }
+
+/* Controls */
+.controls {
+  display: flex; flex-wrap: wrap; gap: 1.25rem 2rem; align-items: flex-end;
+  padding: 1rem 1.1rem; margin: 0.5rem 0 1.25rem;
+  background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+}
+.control { display: flex; flex-direction: column; gap: 0.35rem; }
+.control label { font-size: 0.82rem; color: var(--muted); font-weight: 500; }
+.scope-control { flex: 1 1 340px; min-width: 300px; }
+.scope-row { display: flex; align-items: center; gap: 0.75rem; }
+.scope-mode { color: var(--faint); font-weight: 400; }
+select, input[type="range"] { accent-color: var(--accent); }
+select {
+  font: inherit; padding: 0.45rem 0.6rem; min-width: 260px;
+  background: var(--bg); color: var(--fg);
+  border: 1px solid var(--border); border-radius: 8px;
+}
+input[type="range"] { flex: 1; min-width: 140px; }
+.year-out {
+  font-variant-numeric: tabular-nums; font-weight: 600; min-width: 3.2ch;
+  padding: 0.15rem 0.45rem; background: var(--chip-bg); border-radius: 6px; font-size: 0.9rem;
+}
+.pooled-toggle { display: flex; align-items: center; gap: 0.35rem; font-size: 0.85rem; color: var(--muted); white-space: nowrap; cursor: pointer; }
+.pooled-toggle input { accent-color: var(--accent); }
+
+/* Hero */
+.hero { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 1.1rem 1.2rem 1.3rem; }
+.hero-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.4rem; }
+.hero-head h2 { margin: 0 0 0.15rem; font-size: 1.2rem; }
+.readout { margin: 0; color: var(--muted); font-size: 0.92rem; max-width: 46ch; }
+.stat-chips { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.chip { background: var(--chip-bg); border-radius: 8px; padding: 0.3rem 0.6rem; text-align: center; min-width: 62px; }
+.chip .k { display: block; font-size: 0.68rem; color: var(--faint); text-transform: uppercase; letter-spacing: 0.03em; }
+.chip .v { display: block; font-size: 1.05rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.chip.harder .v { color: var(--harder); }
+.chip.easier .v { color: var(--easier); }
+
+.chart-wrap { position: relative; width: 100%; margin-top: 0.35rem; }
+.chart-wrap svg { display: block; width: 100%; height: auto; }
+.axis text { fill: var(--faint); font-size: 11px; }
+.axis .domain { stroke: var(--border); }
+.axis .tick line { stroke: var(--grid); }
+.gridline { stroke: var(--grid); }
+.zero-line { stroke: var(--fg); stroke-width: 1.6; }
+.d-line { fill: none; stroke: var(--fg); stroke-width: 1.8; stroke-linejoin: round; }
+.fill-harder { fill: var(--harder); opacity: 0.5; }
+.fill-easier { fill: var(--easier); opacity: 0.5; }
+.band { fill: var(--band); opacity: 0.2; }
+.crossover-line { stroke: var(--crossover); stroke-width: 1.5; stroke-dasharray: 4 3; }
+.crossover-label { fill: var(--crossover); font-size: 11px; font-weight: 600; }
+.axis-title { fill: var(--muted); font-size: 12px; }
+.hover-line { stroke: var(--faint); stroke-width: 1; stroke-dasharray: 3 3; }
+.hover-dot { fill: var(--fg); }
+
+/* Tooltip */
+.tooltip {
+  position: absolute; pointer-events: none; z-index: 5; opacity: 0;
+  background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+  padding: 0.5rem 0.6rem; font-size: 0.82rem; line-height: 1.4; max-width: 240px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.12); transition: opacity 0.08s;
+}
+.tooltip .tt-p { font-weight: 600; margin-bottom: 0.15rem; }
+.tooltip .tt-row { color: var(--muted); }
+.tooltip .tt-hard { color: var(--harder); font-weight: 600; }
+.tooltip .tt-easy { color: var(--easier); font-weight: 600; }
+
+/* Legend */
+.legend { display: flex; flex-wrap: wrap; gap: 0.35rem 1.1rem; margin-top: 0.7rem; font-size: 0.8rem; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 0.4rem; }
+.legend .sw { width: 14px; height: 12px; border-radius: 3px; display: inline-block; }
+.legend .sw-line { width: 16px; height: 0; border-top: 2px solid var(--fg); }
+.legend .sw-cross { width: 0; height: 14px; border-left: 2px dashed var(--crossover); }
+
+.empty-state { display: flex; align-items: center; justify-content: center; min-height: 300px; color: var(--faint); text-align: center; padding: 2rem; }
+.app-status { color: var(--faint); font-size: 0.85rem; min-height: 1.2em; }
+.site-footer { color: var(--faint); font-size: 0.85rem; border-top: 1px solid var(--border); margin-top: 2rem; padding-top: 1rem; padding-bottom: 2rem; }

@@ -13,15 +13,42 @@
     <p class="tagline">How locally competitive difficulty compares to the worldwide baseline across team skill &mdash; by FRC region.</p>
   </header>
 
-  <main id="app">
-    <p class="placeholder">Data pipeline scaffolded. Interactive views arrive in Phase 2.</p>
+  <main>
+    <section class="controls" aria-label="View controls">
+      <div class="control">
+        <label for="region-select">Region</label>
+        <select id="region-select"></select>
+      </div>
+      <div class="control scope-control">
+        <label for="year-range">Season <span class="scope-mode" id="scope-caption"></span></label>
+        <div class="scope-row">
+          <input type="range" id="year-range" min="2009" max="2027" step="1" value="2027">
+          <output id="year-out" class="year-out">2027</output>
+          <label class="pooled-toggle"><input type="checkbox" id="pooled-toggle"> Pooled (all-time)</label>
+        </div>
+      </div>
+    </section>
+
+    <section class="hero" aria-label="Displacement curve">
+      <div class="hero-head">
+        <div>
+          <h2 id="hero-title">&nbsp;</h2>
+          <p id="hero-readout" class="readout">&nbsp;</p>
+        </div>
+        <div class="stat-chips" id="stat-chips"></div>
+      </div>
+      <div id="hero-chart" class="chart-wrap"></div>
+      <div class="legend" id="hero-legend"></div>
+    </section>
+
+    <p id="app-status" class="app-status" role="status"></p>
   </main>
 
   <footer class="site-footer">
-    <p>EPA data via <a href="https://www.statbotics.io/">Statbotics</a>. Built as a static site; all statistics precomputed offline.</p>
+    <p>EPA data via <a href="https://www.statbotics.io/">Statbotics</a>. All statistics precomputed offline; this page calls no API at runtime. <span id="build-stamp"></span></p>
   </footer>
 
-  <!-- D3 is vendored locally in Phase 2 (assets/vendor/d3.v7.min.js) and loaded here. -->
-  <script src="./assets/js/app.js" type="module"></script>
+  <script src="./assets/vendor/d3.v7.min.js"></script>
+  <script type="module" src="./assets/js/app.js"></script>
 </body>
 </html>

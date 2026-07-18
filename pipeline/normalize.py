@@ -14,6 +14,12 @@ from . import config
 
 LONG_COLUMNS = ["year", "team", "name", "country", "state", "district", "unitless_epa"]
 
+# Statbotics mixes country spellings across sources/eras; collapse duplicates.
+COUNTRY_ALIASES = {
+    "Turkey": "Türkiye",         # older CSV spelling -> current official name
+    "Kingdom": "United Kingdom",  # truncated value in old data
+}
+
 
 def _load_api(settings: dict) -> pd.DataFrame:
     frames = []
@@ -38,6 +44,7 @@ def run(settings: dict) -> pd.DataFrame:
         df[col] = df[col].astype("string")
         # Treat empty strings as missing.
         df.loc[df[col].str.len() == 0, col] = pd.NA
+    df["country"] = df["country"].replace(COUNTRY_ALIASES)
 
     before = len(df)
     df = df.dropna(subset=["unitless_epa"])
