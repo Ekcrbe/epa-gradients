@@ -47,11 +47,13 @@ and the site can be iterated without re-hitting any API.
 
 ## Data sources
 
-- **≤ 2024:** the `v3/team_years.csv` table from a pinned commit of
+- **≤ 2023:** the `v3/team_years.csv` table from a pinned commit of
   [`avgupta456/statbotics-csvs`](https://github.com/avgupta456/statbotics-csvs)
   (has `unitless_epa` back to 2002).
-- **2025–2026:** the Statbotics mirror API
+- **2024–2026:** the Statbotics mirror API
   (`https://api-statbotics.iterativerefinement.com/v3`), paginated and cached.
+  2024 is taken from the API rather than the pinned CSV because that commit's
+  2024 EPAs were still mid-season and compressed toward the mean.
 
 ## Repository layout
 

@@ -1,9 +1,10 @@
 """Acquire raw EPA data and cache it locally so APIs are hit only once.
 
 Outputs (committed, offline-rebuildable):
-    data/raw/csv_team_years.parquet   trimmed <=2024 history from the pinned CSV
-    data/raw/api_2025.json            flattened mirror-API pull
-    data/raw/api_2026.json
+    data/raw/csv_team_years.parquet   trimmed <=2023 history from the pinned CSV
+    data/raw/api_2024.json            flattened mirror-API pulls (2024 is taken
+    data/raw/api_2025.json            from the API because the pinned CSV's 2024
+    data/raw/api_2026.json            EPAs were still mid-season / incomplete)
 
 The full ~21 MB source CSV is streamed to data/raw/_downloads/ (gitignored).
 """
@@ -103,9 +104,19 @@ def fetch_api_year(settings: dict, year: int, refresh: bool = False) -> Path:
     while True:
         url = f"{base}/team_years"
         params = {"year": year, "limit": page, "offset": offset}
-        r = sess.get(url, params=params, timeout=60)
-        r.raise_for_status()
-        batch = r.json()
+        batch = None
+        for attempt in range(1, 5):
+            try:
+                r = sess.get(url, params=params, timeout=90)
+                r.raise_for_status()
+                batch = r.json()
+                break
+            except requests.RequestException as exc:
+                if attempt == 4:
+                    raise
+                wait = 2 ** attempt
+                print(f"  [api] {year} offset {offset}: {type(exc).__name__}, retry {attempt}/3 in {wait}s")
+                time.sleep(wait)
         if not batch:
             break
         records.extend(_flatten(rec) for rec in batch)
