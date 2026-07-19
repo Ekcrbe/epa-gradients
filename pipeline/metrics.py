@@ -85,50 +85,43 @@ def _gate_crossover(p_fine, d, settings):
     return cx, crossings
 
 
-def compute_region(region_vals, global_sorted, q_fine, q_coarse, p_fine, p_coarse, settings, rng) -> dict:
+def compute_region(region_vals, global_sorted, p_fine, p_coarse, p_band, settings, rng) -> dict:
+    """Per region-scope stats on the local (regional-percentile) axis.
+
+    Only the region's quantile function ``q_local`` (999 knots) and the bootstrap
+    band (a cheaper 199-knot grid) are stored; the hero / survival / comparison
+    curves are reconstructed client-side from q_local + the global q_fine. The
+    worldwide-percentile axis was dropped from the UI, so it is not computed here
+    (the ``displacement`` / crossings helpers remain for possible re-use).
+    """
     rs = np.sort(np.asarray(region_vals, dtype=np.float64))
     top = p_fine > 0.9
 
-    # Global-percentile axis: D(p) = p - F_region(Q_global(p)).
-    d_fine = displacement(rs, q_fine, p_fine)
-    d_coarse = displacement(rs, q_coarse, p_coarse)
-    crossover, crossings = _gate_crossover(p_fine, d_fine, settings)
-    lo, hi = bootstrap.band(rs, q_fine, p_fine, settings, rng)
-
-    # Local-percentile axis: D_local(q) = F_global(Q_region(q)) - q. Same sign
-    # convention (positive = locally harder); a hero-only alternate view.
+    # D_local(q) = F_global(Q_region(q)) - q  (positive = locally harder).
     q_local = np.quantile(rs, p_fine)
     d_local = _ecdf_right(global_sorted, q_local) - p_fine
     d_local_coarse = _ecdf_right(global_sorted, np.quantile(rs, p_coarse)) - p_coarse
     crossover_local, _ = _gate_crossover(p_fine, d_local, settings)
-    lo_l, hi_l = bootstrap.band_local(rs, global_sorted, p_fine, settings, rng)
+    lo_l, hi_l = bootstrap.band_local(rs, global_sorted, p_band, settings, rng)
 
     return {
         "n": int(len(rs)),
-        "D_fine": d_fine,
-        "D_coarse": d_coarse,
-        "band_lo": lo,
-        "band_hi": hi,
-        "crossover": crossover,
-        "crossings": crossings,
-        "mean_D": float(d_fine.mean()),
-        "top_heaviness": float(d_fine[top].mean()),
-        "D_local": d_local,
-        "D_local_coarse": d_local_coarse,
+        "q_local": q_local,
         "band_local_lo": lo_l,
         "band_local_hi": hi_l,
         "crossover_local": crossover_local,
         "mean_D_local": float(d_local.mean()),
         "top_heaviness_local": float(d_local[top].mean()),
-        "q_local": q_local,
-        "survival": survival_tail(rs, global_sorted, settings),
+        "D_local_coarse": d_local_coarse,
+        "mean_R": survival_tail(rs, global_sorted, settings)["mean_R"],
     }
 
 
 def build(strength: pd.DataFrame, settings: dict) -> dict:
     m = settings["metrics"]
-    n_fine, n_coarse = m["fine_grid"], m["coarse_bins"]
+    n_fine, n_band, n_coarse = m["fine_grid"], m["band_grid"], m["coarse_bins"]
     p_fine = (np.arange(1, n_fine + 1)) / (n_fine + 1)
+    p_band = (np.arange(1, n_band + 1)) / (n_band + 1)
     p_coarse = (np.arange(n_coarse) + 0.5) / n_coarse
     rng = np.random.default_rng(m["bootstrap_seed"])
 
@@ -147,8 +140,8 @@ def build(strength: pd.DataFrame, settings: dict) -> dict:
                 continue
             key = f"{base}:{mode}"
             global_sorted = np.sort(gvals)
+            # q_fine (999 knots) is stored for the client to reconstruct F_global.
             q_fine = np.quantile(global_sorted, p_fine)
-            q_coarse = np.quantile(global_sorted, p_coarse)
             globals_by_scope[key] = {"n": int(len(global_sorted)), "q_fine": q_fine}
 
             by_region = {rid: g[col].to_numpy(dtype=np.float64)
@@ -161,11 +154,12 @@ def build(strength: pd.DataFrame, settings: dict) -> dict:
                 if len(rvals) == 0:
                     continue
                 results[rid][key] = compute_region(
-                    rvals, global_sorted, q_fine, q_coarse, p_fine, p_coarse, settings, rng
+                    rvals, global_sorted, p_fine, p_coarse, p_band, settings, rng
                 )
 
     return {
         "p_fine": p_fine,
+        "p_band": p_band,
         "p_coarse": p_coarse,
         "base_scopes": base_scopes,
         "modes": list(MODES),
@@ -181,7 +175,7 @@ def run(settings: dict) -> dict:
     ts = strength.load(settings)
     out = build(ts, settings)
     n_cells = sum(len(v) for v in out["results"].values())
-    n_bands = sum(1 for v in out["results"].values() for r in v.values() if r["band_lo"] is not None)
+    n_bands = sum(1 for v in out["results"].values() for r in v.values() if r["band_local_lo"] is not None)
     n_scopes = len(out["base_scopes"]) * len(out["modes"])
     print(f"  metrics: {len(out['region_ids'])} regions x {n_scopes} scopes "
           f"({len(out['modes'])} modes) -> {n_cells:,} region-scope cells, {n_bands:,} bands")

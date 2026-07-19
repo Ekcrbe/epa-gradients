@@ -32,15 +32,20 @@ export function renderSmallMultiples(el, { manifest, rows, M, selectedId, onSele
   const pc = manifest.grid.p_coarse;
   const frag = document.createDocumentFragment();
   for (const r of rows) {
-    const md = r.mean_D * 100;
+    // Headline metric = mean survival ratio (the All Regions sort key), so the
+    // number shown matches the ordering. The mini-curve still shows the D_local
+    // profile (where within the region it is harder / easier).
+    const sr = r.mean_survival_R;
+    const cls = sr != null && sr >= 1 ? "hard" : "easy";
+    const label = sr != null ? `${sr.toFixed(2)}×` : "—";
     const card = document.createElement("button");
     card.type = "button";
     card.className = "sm-card" + (r.id === selectedId ? " sel" : "");
-    card.setAttribute("aria-label", `${r.name}, n ${r.n}, mean displacement ${md.toFixed(1)}`);
+    card.setAttribute("aria-label", `${r.name}, n ${r.n}, average survival ratio ${label}`);
     card.addEventListener("click", () => onSelect(r.id));
     card.innerHTML =
       `<div class="sm-head"><span class="sm-name">${truncate(r.name, 18)}</span>` +
-      `<span class="sm-meta"><span class="${md >= 0 ? "hard" : "easy"}">${md >= 0 ? "+" : ""}${md.toFixed(1)}</span> · n${r.n}</span></div>` +
+      `<span class="sm-meta"><span class="${cls}">${label}</span> · n${r.n}</span></div>` +
       miniSvg(r, pc, M);
     frag.appendChild(card);
   }

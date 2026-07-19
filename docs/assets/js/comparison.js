@@ -1,35 +1,39 @@
 // Region-comparison plot: a parametric curve x(t) = F_region1(t), y(t) =
 // F_region2(t) as t sweeps unitless EPA -- where a team of a given raw skill
 // lands (in each region's own percentile terms) in Region 1 vs. Region 2.
-// y = x means identical distributions. Both axes are regional percentile,
-// each computed by inverse-interpolating that region's own quantile function
-// (q_local, EPA-at-percentile) against a shared EPA sweep.
+// y = x means identical distributions. The area between the curve and that
+// diagonal is filled: purple vertical stripes where Region 1 is the stronger
+// (deeper) region (curve above the diagonal), green horizontal stripes where
+// Region 2 is stronger (below).
 import { interp1d } from "./interp.js";
+
+const N_SWEEP = 1000;
+const GREEN = "29,158,117", PURPLE = "122,91,208"; // r,g,b
 
 export function renderComparison(el, manifest, region1, region2, scope) {
   el.innerHTML = "";
   const sc1 = region1.scopes[scope], sc2 = region2.scopes[scope];
   const q1 = sc1 && sc1.q_local, q2 = sc2 && sc2.q_local;
-  const tGrid = (manifest.globals[scope] || {}).q_fine;
-  if (!q1 || !q2 || !tGrid || !tGrid.length) {
+  const qFine = (manifest.globals[scope] || {}).q_fine;
+  if (!q1 || !q2 || !qFine || !qFine.length) {
     el.innerHTML = `<div class="empty-state">${region1.name} and/or ${region2.name} have no data for this season.</div>`;
     return;
   }
   const pFine = manifest.grid.p_fine;
-  const pts = tGrid.map((t) => ({
-    t,
-    x: interp1d(q1, pFine, t) * 100,
-    y: interp1d(q2, pFine, t) * 100,
-  }));
+  // Sweep t uniformly in EPA across the world's range for a smooth curve.
+  const tLo = qFine[0], tHi = qFine[qFine.length - 1];
+  const pts = [];
+  for (let i = 0; i < N_SWEEP; i++) {
+    const t = tLo + ((tHi - tLo) * i) / (N_SWEEP - 1);
+    pts.push({ t, x: interp1d(q1, pFine, t) * 100, y: interp1d(q2, pFine, t) * 100 });
+  }
 
   const tip = document.createElement("div");
   tip.className = "tooltip";
   el.appendChild(tip);
 
-  const width = Math.max(320, el.clientWidth || 640);
   const iSize = 400;
   const m = { top: 16, right: 16, bottom: 46, left: 54 };
-
   const x = d3.scaleLinear([0, 100], [0, iSize]);
   const y = d3.scaleLinear([0, 100], [iSize, 0]);
 
@@ -37,7 +41,28 @@ export function renderComparison(el, manifest, region1, region2, scope) {
     .attr("viewBox", `0 0 ${m.left + iSize + m.right} ${m.top + iSize + m.bottom}`)
     .attr("role", "img")
     .attr("aria-label", `Region comparison: ${region1.name} vs ${region2.name}`);
+  const defs = svg.append("defs");
+  const stripe = (id, rgb, orient) => {
+    const pat = defs.append("pattern").attr("id", id).attr("patternUnits", "userSpaceOnUse")
+      .attr("width", 7).attr("height", 7);
+    pat.append("rect").attr("width", 7).attr("height", 7).attr("fill", `rgba(${rgb},0.10)`);
+    const l = pat.append("line").attr("stroke", `rgba(${rgb},0.55)`).attr("stroke-width", 1);
+    if (orient === "v") l.attr("x1", 3.5).attr("y1", 0).attr("x2", 3.5).attr("y2", 7);
+    else l.attr("x1", 0).attr("y1", 3.5).attr("x2", 7).attr("y2", 3.5);
+  };
+  stripe("stripe-v", PURPLE, "v"); // Region 1 stronger
+  stripe("stripe-h", GREEN, "h");  // Region 2 stronger
+  defs.append("clipPath").attr("id", "cmp-above").append("polygon")
+    .attr("points", `0,0 ${iSize},0 0,${iSize}`);
+  defs.append("clipPath").attr("id", "cmp-below").append("polygon")
+    .attr("points", `${iSize},0 ${iSize},${iSize} 0,${iSize}`);
+
   const g = svg.append("g").attr("transform", `translate(${m.left},${m.top})`);
+
+  // Fill between the curve and the y = x diagonal, split by side.
+  const area = d3.area().x((p) => x(p.x)).y0((p) => y(p.x)).y1((p) => y(p.y));
+  g.append("path").datum(pts).attr("d", area).attr("fill", "url(#stripe-v)").attr("clip-path", "url(#cmp-above)");
+  g.append("path").datum(pts).attr("d", area).attr("fill", "url(#stripe-h)").attr("clip-path", "url(#cmp-below)");
 
   const ticks = [0, 20, 40, 60, 80, 100];
   g.append("g").selectAll("line.vgrid").data(ticks).join("line").attr("class", "gridline")
@@ -64,26 +89,29 @@ export function renderComparison(el, manifest, region1, region2, scope) {
 
   const hover = g.append("g").style("display", "none");
   const hDot = hover.append("circle").attr("class", "hover-dot").attr("r", 4);
+  const bisect = d3.bisector((p) => p.x).center;
 
   g.append("rect").attr("width", iSize).attr("height", iSize).attr("fill", "none").style("pointer-events", "all")
     .on("mouseenter", () => hover.style("display", null))
     .on("mouseleave", () => { hover.style("display", "none"); tip.style.opacity = 0; })
     .on("mousemove", function (event) {
-      const [mx, my] = d3.pointer(event, this);
-      let best = 0, bestD = Infinity;
-      for (let i = 0; i < pts.length; i++) {
-        const dx = x(pts[i].x) - mx, dy = y(pts[i].y) - my;
-        const d2 = dx * dx + dy * dy;
-        if (d2 < bestD) { bestD = d2; best = i; }
-      }
-      const p = pts[best];
+      const [mx] = d3.pointer(event, this);
+      const p = pts[bisect(pts, x.invert(mx))];
       hDot.attr("cx", x(p.x)).attr("cy", y(p.y));
       tip.innerHTML = `<div class="tt-p">${Math.round(p.t)} EPA</div>` +
         `<div class="tt-row">${region1.name}: ${p.x.toFixed(1)}th pct</div>` +
         `<div class="tt-row">${region2.name}: ${p.y.toFixed(1)}th pct</div>`;
       tip.style.opacity = 1;
-      const tx = m.left + x(p.x) + 12;
-      tip.style.left = `${Math.min(tx, width - 200)}px`;
+      tip.style.left = `${Math.min(m.left + x(p.x) + 12, m.left + iSize - 40)}px`;
       tip.style.top = `${m.top + y(p.y) - 10}px`;
     });
+
+  // Legend explaining the two fills (uses live region names).
+  const legend = document.createElement("div");
+  legend.className = "legend cmp-legend";
+  legend.innerHTML =
+    `<span><span class="sw" style="background:rgba(${PURPLE},0.5)"></span>${region1.name} stronger</span>` +
+    `<span><span class="sw" style="background:rgba(${GREEN},0.5)"></span>${region2.name} stronger</span>` +
+    `<span><span class="sw-cmp-diag"></span>y = x (identical)</span>`;
+  el.appendChild(legend);
 }

@@ -36,7 +36,14 @@ sc_fsc_from = 2025
 pa_active_cutoff = 2012      # PA teams active in/after this year use given district
 
 [metrics]
-fine_grid = 199              # hero D(p) resolution over the open interval (0,1)
+# Quantile-knot resolution (~1/10 of a percentile). q_local (region) and q_fine
+# (global) are stored at this resolution; the hero, survival, and comparison
+# curves are reconstructed client-side from those knots, so they all render at
+# this resolution without storing per-curve arrays.
+fine_grid = 999
+# Bootstrap confidence bands are stored on a coarser grid (a shaded region does
+# not need 999 knots) to keep the band JSON small and the resampling cheap.
+band_grid = 199
 coarse_bins = 40             # heatmap / small-multiples percentile bins
 bootstrap_B = 1000
 bootstrap_seed = 12345
@@ -52,15 +59,17 @@ crossover_min_side = 0.02
 # Crossovers in the bottom decile are not reported: sub-10th-percentile
 # performance is noisy year-over-year and a flip there is not a notable fact.
 crossover_min_p = 0.10
-# Survival ratio R(x) is plotted/averaged over global percentiles
-# [survival_p_start, min(adaptive-thinness-cap, survival_p_end_cap)]. The
-# adaptive cap backs off further if the season's global n is too small to
-# trust the tail at survival_p_end_cap.
+# Survival ratio R(x) is averaged over global percentiles
+# [survival_p_start, min(adaptive-thinness-cap, survival_p_end_cap)] to form the
+# region's mean_R difficulty stat. The adaptive cap backs off further if the
+# season's global n is too small to trust the tail at survival_p_end_cap. The
+# same bounds are echoed to the frontend (manifest.survival) which reconstructs
+# the plotted curve client-side from the quantile knots.
 survival_min_global_frac = 0.01
 survival_min_global_teams = 5
 survival_p_start = 0.01      # 1st percentile
 survival_p_end_cap = 0.99    # 99th percentile -- skips the 100th to avoid /0
-survival_points = 300        # x-resolution of the plotted curve
+survival_points = 300        # sampling density for the mean_R integral
 
 [emit]
 docs_data = "docs/data"

@@ -48,6 +48,7 @@ def run(out: dict, settings: dict) -> None:
     region_meta = json.loads(meta_path.read_text(encoding="utf-8")) if meta_path.exists() else {}
 
     p_fine = out["p_fine"]
+    p_band = out["p_band"]
     p_coarse = out["p_coarse"]
     results = out["results"]
     globals_by_scope = out["globals"]
@@ -77,42 +78,32 @@ def run(out: dict, settings: dict) -> None:
         summary_scopes = {}
         for scope, res in by_scope.items():
             k = _scope_key(scope)
+            # Detail is intentionally slim: the region's quantile knots (q_local,
+            # 999) + the bootstrap band (band_grid, 199) + scalars. The hero,
+            # survival, and comparison curves are reconstructed client-side from
+            # q_local and the scope's global q_fine, so no per-curve arrays are
+            # stored.
             detail_scopes[k] = {
                 "n": res["n"],
-                "D": _rlist(res["D_fine"], 4),
-                "band_lo": _rlist(res["band_lo"], 4),
-                "band_hi": _rlist(res["band_hi"], 4),
-                "crossover": _r(res["crossover"], 4),
-                "crossings": [{"p": _r(c["p"], 4), "dir": c["dir"]} for c in res["crossings"]],
-                "mean_D": _r(res["mean_D"], 4),
-                "top_heaviness": _r(res["top_heaviness"], 4),
-                # Local-percentile axis (alternate hero view).
-                "D_local": _rlist(res["D_local"], 4),
+                "q_local": _rlist(res["q_local"], 1),
                 "band_local_lo": _rlist(res["band_local_lo"], 4),
                 "band_local_hi": _rlist(res["band_local_hi"], 4),
                 "crossover_local": _r(res["crossover_local"], 4),
                 "mean_D_local": _r(res["mean_D_local"], 4),
                 "top_heaviness_local": _r(res["top_heaviness_local"], 4),
-                "q_local": _rlist(res["q_local"], 1),
-                "survival": {
-                    "x": _rlist(res["survival"]["x"], 1),
-                    "R": _rlist(res["survival"]["R"], 3),
-                    "mean_R": _r(res["survival"]["mean_R"], 4),
-                },
+                "mean_R": _r(res["mean_R"], 4),
             }
-            # Summary drives the all-regions views, which now use the local
-            # (regional-percentile) axis. The global equivalents remain in the
-            # per-region detail files should we re-add the worldwide view.
-            # mean_survival_R (the region's mean right-tail survival ratio,
-            # 1st-99th global percentile) is the site's "average difficulty"
-            # ranking stat -- used to sort the All Regions comparison views.
+            # Summary drives the All Regions views (heatmap / small-multiples /
+            # sorting). mean_survival_R -- the region's mean right-tail survival
+            # ratio (1st-99th global percentile) -- is the site's headline
+            # "average difficulty" stat and the default sort key.
             summary_scopes[k] = {
                 "n": res["n"],
                 "mean_D": _r(res["mean_D_local"], 4),
                 "crossover": _r(res["crossover_local"], 4),
                 "top_heaviness": _r(res["top_heaviness_local"], 4),
                 "D_coarse": _rlist(res["D_local_coarse"], 4),
-                "mean_survival_R": _r(res["survival"]["mean_R"], 4),
+                "mean_survival_R": _r(res["mean_R"], 4),
             }
 
         (regions_dir / f"{rid}.json").write_text(json.dumps({
@@ -155,7 +146,18 @@ def run(out: dict, settings: dict) -> None:
             "sc_gap_years": settings["regions"]["sc_pch_years"],
             "sc_gap_redirect": "pch",
         },
-        "grid": {"p_fine": _rlist(p_fine, 4), "p_coarse": _rlist(p_coarse, 4)},
+        "grid": {
+            "p_fine": _rlist(p_fine, 5),
+            "p_band": _rlist(p_band, 5),
+            "p_coarse": _rlist(p_coarse, 4),
+        },
+        # Bounds the client uses to reconstruct the survival curve's EPA range.
+        "survival": {
+            "p_start": settings["metrics"]["survival_p_start"],
+            "p_end_cap": settings["metrics"]["survival_p_end_cap"],
+            "min_global_frac": settings["metrics"]["survival_min_global_frac"],
+            "min_global_teams": settings["metrics"]["survival_min_global_teams"],
+        },
         "scopes": list(globals_by_scope.keys()),
         "globals": {
             _scope_key(s): {"n": g["n"], "q_fine": _rlist(g["q_fine"], 1)}

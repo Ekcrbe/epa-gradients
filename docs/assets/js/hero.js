@@ -1,6 +1,8 @@
-// Hero displacement chart: D(p) with diverging fill, bootstrap band,
-// zero line, and hover readout. Uses the global d3.
+// Hero displacement chart: D_local(q) reconstructed client-side from the region
+// quantile knots, with diverging fill, bootstrap band, a dashed average-D
+// reference line, and a hover readout. Uses the global d3.
 import { ordinal } from "./format.js";
+import { localDisplacementCurve } from "./curves.js";
 
 const M_MIN = 0.08;
 
@@ -9,14 +11,15 @@ function niceHalf(maxAbs) {
   return Math.ceil(raw / 0.02) * 0.02;
 }
 
-export function renderHero(el, manifest, region, scope, axis = "global") {
+export function renderHero(el, manifest, region, scope) {
   const p = manifest.grid.p_fine;
+  const pBand = manifest.grid.p_band;
   const sc = region.scopes[scope];
-  const local = axis === "local";
-  const D = local ? sc.D_local : sc.D;
-  const lo = local ? sc.band_local_lo : sc.band_lo;
-  const hi = local ? sc.band_local_hi : sc.band_hi;
-  const q = local ? (sc.q_local || []) : ((manifest.globals[scope] || {}).q_fine || []);
+  const qLocal = sc.q_local;
+  const qFine = (manifest.globals[scope] || {}).q_fine || [];
+  const D = localDisplacementCurve(qLocal, qFine, p);
+  const lo = sc.band_local_lo, hi = sc.band_local_hi;
+  const avgD = sc.mean_D_local;
   el.innerHTML = "";
   const tip = document.createElement("div");
   tip.className = "tooltip";
@@ -25,9 +28,9 @@ export function renderHero(el, manifest, region, scope, axis = "global") {
   const n = p.length;
   const hasBand = Array.isArray(lo) && Array.isArray(hi);
 
-  let maxAbs = 0;
+  let maxAbs = Math.abs(avgD ?? 0);
   for (const v of D) if (v != null) maxAbs = Math.max(maxAbs, Math.abs(v));
-  if (hasBand) for (let i = 0; i < n; i++) maxAbs = Math.max(maxAbs, Math.abs(lo[i]), Math.abs(hi[i]));
+  if (hasBand) for (let i = 0; i < lo.length; i++) maxAbs = Math.max(maxAbs, Math.abs(lo[i]), Math.abs(hi[i]));
   const M = niceHalf(maxAbs);
 
   const width = Math.max(320, el.clientWidth || 820);
@@ -45,7 +48,6 @@ export function renderHero(el, manifest, region, scope, axis = "global") {
     .attr("aria-label", `Displacement curve for ${region.name}, ${scope}`);
   const g = svg.append("g").attr("transform", `translate(${m.left},${m.top})`);
 
-  // Horizontal gridlines.
   g.append("g").attr("class", "grid")
     .selectAll("line").data(y.ticks(7)).join("line")
     .attr("class", "gridline")
@@ -54,10 +56,11 @@ export function renderHero(el, manifest, region, scope, axis = "global") {
   const zeroY = y(0);
   const idx = D.map((_, i) => i);
 
-  // Bootstrap band.
+  // Bootstrap band (its own coarser grid).
   if (hasBand) {
-    const band = d3.area().x((i) => x(p[i])).y0((i) => y(lo[i])).y1((i) => y(hi[i]));
-    g.append("path").datum(idx).attr("class", "band").attr("d", band);
+    const bi = lo.map((_, i) => i);
+    const band = d3.area().x((i) => x(pBand[i])).y0((i) => y(lo[i])).y1((i) => y(hi[i]));
+    g.append("path").datum(bi).attr("class", "band").attr("d", band);
   }
 
   // Diverging fill (area between curve and zero, clipped above / below).
@@ -75,14 +78,21 @@ export function renderHero(el, manifest, region, scope, axis = "global") {
   const line = d3.line().x((i) => x(p[i])).y((i) => y(D[i]));
   g.append("path").datum(idx).attr("class", "d-line").attr("d", line);
 
-  // Axes.
+  // Average-D reference line (matches the survival plot's mean-R line).
+  if (avgD != null) {
+    const ay = y(avgD);
+    g.append("line").attr("class", "avg-line").attr("x1", 0).attr("x2", iW).attr("y1", ay).attr("y2", ay);
+    g.append("text").attr("class", "avg-label")
+      .attr("x", iW - 4).attr("y", ay + (avgD >= 0 ? 12 : -5)).attr("text-anchor", "end")
+      .text(`avg D = ${avgD >= 0 ? "+" : ""}${(avgD * 100).toFixed(1)}`);
+  }
+
   g.append("g").attr("class", "axis").attr("transform", `translate(0,${iH})`)
     .call(d3.axisBottom(x).ticks(6).tickFormat((d) => `${Math.round(d * 100)}`));
   g.append("g").attr("class", "axis")
     .call(d3.axisLeft(y).ticks(7).tickFormat((d) => (d > 0 ? "+" : "") + Math.round(d * 100)));
   g.append("text").attr("class", "axis-title").attr("text-anchor", "middle")
-    .attr("x", iW / 2).attr("y", iH + 38)
-    .text(local ? "team standing — regional percentile" : "team skill — worldwide percentile");
+    .attr("x", iW / 2).attr("y", iH + 38).text("team standing — regional percentile");
   g.append("text").attr("class", "axis-title").attr("text-anchor", "middle")
     .attr("transform", `translate(${-42},${iH / 2}) rotate(-90)`).text("displacement D  (percentile points)");
 
@@ -105,19 +115,12 @@ export function renderHero(el, manifest, region, scope, axis = "global") {
       hDot.attr("cx", px).attr("cy", y(D[i]));
       const dPts = D[i] * 100;
       const harder = D[i] >= 0;
-      const epa = q[i] != null ? Math.round(q[i]) : null;
-      const head = local
-        ? `${ordinal(Math.round(p[i] * 100))} regional percentile`
-        : `${ordinal(Math.round(p[i] * 100))} worldwide percentile`;
-      const rank = local
-        ? `ranks ~${ordinal(Math.round((p[i] + D[i]) * 100))} worldwide`
-        : `ranks ~${ordinal(Math.round((p[i] - D[i]) * 100))} within ${region.name}`;
+      const epa = qLocal[i] != null ? Math.round(qLocal[i]) : null;
       tip.innerHTML =
-        `<div class="tt-p">${head}</div>` +
+        `<div class="tt-p">${ordinal(Math.round(p[i] * 100))} regional percentile</div>` +
         (epa != null ? `<div class="tt-row">≈ ${epa} unitless EPA</div>` : "") +
-        `<div class="tt-row">D = <span class="${harder ? "tt-hard" : "tt-easy"}">${harder ? "+" : ""}${dPts.toFixed(1)} pts</span> — ` +
-        `${harder ? "harder" : "easier"} here</div>` +
-        `<div class="tt-row">${rank}</div>`;
+        `<div class="tt-row">D = <span class="${harder ? "tt-hard" : "tt-easy"}">${harder ? "+" : ""}${dPts.toFixed(1)} pts</span> — ${harder ? "harder" : "easier"} here</div>` +
+        `<div class="tt-row">ranks ~${ordinal(Math.round((p[i] + D[i]) * 100))} worldwide</div>`;
       tip.style.opacity = 1;
       const tx = m.left + px + 14;
       tip.style.left = `${Math.min(tx, width - 230)}px`;

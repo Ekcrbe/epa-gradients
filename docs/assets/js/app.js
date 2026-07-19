@@ -5,6 +5,7 @@ import { renderHeatmap } from "./heatmap.js";
 import { renderSmallMultiples } from "./smallmultiples.js";
 import { renderSurvival } from "./survival.js";
 import { renderComparison } from "./comparison.js";
+import { localDisplacementCurve } from "./curves.js";
 import { divergingColor } from "./theme.js";
 
 const TYPE_LABEL = { district: "Districts", state: "States / provinces", country: "Countries" };
@@ -37,6 +38,7 @@ const els = {
   status: document.getElementById("app-status"),
   stamp: document.getElementById("build-stamp"),
   survivalSub: document.getElementById("survival-sub"),
+  survivalChips: document.getElementById("survival-chips"),
   survivalChart: document.getElementById("survival-chart"),
   survivalLegend: document.getElementById("survival-legend"),
   cmpRegion1: document.getElementById("cmp-region1"),
@@ -111,6 +113,7 @@ function wireEvents() {
   els.pooled.addEventListener("change", () => {
     state.pooled = els.pooled.checked;
     els.year.disabled = state.pooled;
+    syncSingleControl();
     renderSelected(); renderAllRegions(); renderCompare();
   });
   els.single.addEventListener("change", () => {
@@ -145,7 +148,15 @@ function setView(v) {
 
 function scopeKey() {
   const base = state.pooled ? "pooled" : String(state.year);
-  return `${base}:${state.single ? "single" : "wma"}`;
+  // All-time (pooled) mode forces single-year EPA: applying the 4-year WMA and
+  // then pooling every year would multiply-count the middle seasons of each
+  // window relative to the first/last, which isn't statistically justified.
+  return `${base}:${state.pooled || state.single ? "single" : "wma"}`;
+}
+
+function syncSingleControl() {
+  if (state.pooled) { els.single.checked = true; els.single.disabled = true; }
+  else { els.single.disabled = false; els.single.checked = state.single; }
 }
 
 async function selectRegion(id, scroll) {
@@ -165,23 +176,10 @@ async function selectRegion(id, scroll) {
 const onSelect = (id) => selectRegion(id, true);
 
 function scopeLabel() {
-  if (state.pooled) return `pooled — all postseasons 2008–2026 · ${state.single ? "single-year EPA" : "4-year WMA"}`;
+  if (state.pooled) return "pooled — all postseasons 2008–2026 · single-year EPA";
   if (state.single) return `${state.year} postseason · single-year EPA`;
   const win = strengthWindow(state.year, manifest.model?.skip_years);
   return `${state.year} postseason · WMA of ${win[0]}–${win[win.length - 1]}`;
-}
-
-// The site shows the regional-percentile (local) axis; map a detail scope to it.
-// The worldwide-axis fields (D, band_lo, crossover, ...) remain in the data.
-function localView(sc) {
-  return {
-    n: sc.n,
-    D: sc.D_local,
-    band_lo: sc.band_local_lo,
-    band_hi: sc.band_local_hi,
-    mean_D: sc.mean_D_local,
-    top_heaviness: sc.top_heaviness_local,
-  };
 }
 
 // --- selected-region views (hero + survival) ---
@@ -210,36 +208,47 @@ function renderSelected() {
       msg = `${region.name} has no teams in ${state.year}.<br>Available: ${span}.`;
     }
     els.chart.innerHTML = `<div class="empty-state">${msg}</div>`;
-    els.survivalChart.innerHTML = ""; els.survivalLegend.innerHTML = "";
+    els.survivalChart.innerHTML = ""; els.survivalLegend.innerHTML = ""; els.survivalChips.innerHTML = "";
     els.chips.innerHTML = ""; els.legend.innerHTML = ""; els.readout.textContent = ""; els.status.textContent = "";
     return;
   }
-  const v = localView(sc);
-  els.readout.textContent = `${scopeLabel()}. ${describe(v)}`;
-  renderChips(v);
-  renderLegend(v);
-  renderHero(els.chart, manifest, region, scope, "local");
+  const qFine = (manifest.globals[scope] || {}).q_fine || [];
+  const D = localDisplacementCurve(sc.q_local, qFine, manifest.grid.p_fine);
+  els.readout.textContent = `${scopeLabel()}. ${describe(D)}`;
+  renderChips(sc);
+  renderSurvivalChips(sc);
+  renderLegend(sc);
+  renderHero(els.chart, manifest, region, scope);
   renderSurvival(els.survivalChart, els.survivalLegend, manifest, region, scope);
-  els.status.textContent = v.band_lo ? "" : `Small sample (n=${v.n}) — no bootstrap band shown; interpret the curve cautiously.`;
+  els.status.textContent = sc.band_local_lo ? "" : `Small sample (n=${sc.n}) — no bootstrap band shown; interpret the curve cautiously.`;
 }
 
-function describe(sc) {
-  const D = sc.D, n = D.length;
+function describe(D) {
   let pos = 0;
   for (const v of D) if (v > 0) pos++;
-  const frac = pos / n;
+  const frac = pos / D.length;
   if (frac > 0.85) return "Locally harder than the world across nearly all of its teams.";
   if (frac < 0.15) return "Locally easier than the world across nearly all of its teams.";
   return "A mix of locally harder and easier standing across the region.";
 }
 
 function renderChips(sc) {
-  const md = sc.mean_D * 100;
-  const cls = sc.mean_D > 0 ? "harder" : "easier";
+  const md = sc.mean_D_local * 100;
+  const cls = sc.mean_D_local > 0 ? "harder" : "easier";
   els.chips.innerHTML =
     chip("teams (n)", sc.n) +
     chip("avg vs world", `${md > 0 ? "+" : ""}${md.toFixed(1)}`, cls);
 }
+
+function renderSurvivalChips(sc) {
+  if (!els.survivalChips) return;
+  const r = sc.mean_R;
+  const cls = r != null ? (r >= 1 ? "harder" : "easier") : "";
+  els.survivalChips.innerHTML =
+    chip("teams (n)", sc.n) +
+    chip("avg R", r != null ? `${r.toFixed(2)}×` : "—", cls);
+}
+
 const chip = (k, v, cls = "") => `<div class="chip ${cls}"><span class="k">${k}</span><span class="v">${v}</span></div>`;
 
 function renderLegend(sc) {
@@ -247,7 +256,8 @@ function renderLegend(sc) {
     `<span><span class="sw" style="background:var(--harder);opacity:.55"></span>harder than world</span>`,
     `<span><span class="sw" style="background:var(--easier);opacity:.55"></span>easier than world</span>`,
   ];
-  if (sc.band_lo) items.push(`<span><span class="sw" style="background:var(--band);opacity:.35"></span>95% bootstrap band</span>`);
+  if (sc.band_local_lo) items.push(`<span><span class="sw" style="background:var(--band);opacity:.35"></span>95% bootstrap band</span>`);
+  if (sc.mean_D_local != null) items.push(`<span><span class="sw-avg"></span>avg D</span>`);
   els.legend.innerHTML = items.join("");
 }
 

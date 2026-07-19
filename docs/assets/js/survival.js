@@ -1,10 +1,11 @@
-// Right-tail survival ratio R(x) = (1 - F_region) / (1 - F_global), covering
-// most of the distribution (1st-99th global percentile) on a log y-axis, with
-// diverging red/blue shading around the R = 1 reference line, secondary
-// percentile gridlines to orient the (raw EPA) x-axis, and a dotted horizontal
-// line at the region's mean R across that range -- the site's "average
-// difficulty" summary stat (also used to sort the All Regions views).
+// Right-tail depth: survival ratio R(x) = (1 - F_region) / (1 - F_global),
+// reconstructed client-side from the quantile knots and sampled uniformly in
+// EPA (so the sparse upper tail stays smooth), on a log y-axis. Diverging
+// red/blue shading around R = 1, faint global-percentile gridlines to orient
+// the raw-EPA x-axis, and a dotted line at the region's mean R -- the site's
+// "average difficulty" stat (also the All Regions sort key).
 import { interp1d } from "./interp.js";
+import { survivalCurve } from "./curves.js";
 
 const REF_PERCENTILES = [10, 25, 50, 75, 90, 95, 99];
 
@@ -12,8 +13,12 @@ export function renderSurvival(el, legendEl, manifest, region, scope) {
   el.innerHTML = "";
   if (legendEl) legendEl.innerHTML = "";
   const sc = region.scopes[scope];
-  const sv = sc && sc.survival;
-  const pts = sv && sv.x ? sv.x.map((x, i) => ({ x, R: sv.R[i] })).filter((p) => p.R != null && p.R > 0) : [];
+  const g0 = manifest.globals[scope] || {};
+  const qFine = g0.q_fine, pFine = manifest.grid.p_fine;
+  const curve = sc && sc.q_local && qFine
+    ? survivalCurve(sc.q_local, qFine, pFine, g0.n, manifest.survival)
+    : { x: [], R: [] };
+  const pts = curve.x.map((x, i) => ({ x, R: curve.R[i] })).filter((p) => p.R != null && p.R > 0);
   if (pts.length < 3) {
     el.innerHTML = `<div class="empty-state small">Not enough right-tail depth to estimate a survival ratio for ${region.name} here.</div>`;
     return;
@@ -29,7 +34,7 @@ export function renderSurvival(el, legendEl, manifest, region, scope) {
 
   const xs = pts.map((p) => p.x), rs = pts.map((p) => p.R);
   const x = d3.scaleLinear([d3.min(xs), d3.max(xs)], [0, iW]);
-  const meanR = sv.mean_R;
+  const meanR = sc.mean_R;
   const yVals = meanR != null ? [...rs, meanR] : rs;
   const yMin = Math.min(0.5, d3.min(yVals) * 0.85);
   const yMax = Math.max(2, d3.max(yVals) * 1.15);
@@ -38,10 +43,9 @@ export function renderSurvival(el, legendEl, manifest, region, scope) {
   const svg = d3.select(el).append("svg")
     .attr("viewBox", `0 0 ${width} ${height}`)
     .attr("role", "img")
-    .attr("aria-label", `Right-tail survival ratio for ${region.name}`);
+    .attr("aria-label", `Right-tail depth (survival ratio) for ${region.name}`);
   const g = svg.append("g").attr("transform", `translate(${m.left},${m.top})`);
 
-  // Horizontal gridlines.
   g.append("g").attr("class", "grid").selectAll("line")
     .data(y.ticks(5)).join("line").attr("class", "gridline")
     .attr("x1", 0).attr("x2", iW).attr("y1", (d) => y(d)).attr("y2", (d) => y(d));
@@ -59,9 +63,7 @@ export function renderSurvival(el, legendEl, manifest, region, scope) {
   g.append("path").datum(idx).attr("class", "fill-harder").attr("clip-path", "url(#sclip-up)").attr("d", area);
   g.append("path").datum(idx).attr("class", "fill-easier").attr("clip-path", "url(#sclip-down)").attr("d", area);
 
-  // Secondary x-axis: faint dotted lines + labels at global percentile markers,
-  // drawn over the fill so they stay legible.
-  const pFine = manifest.grid.p_fine, qFine = (manifest.globals[scope] || {}).q_fine;
+  // Faint global-percentile markers to orient the raw-EPA x-axis.
   if (qFine && qFine.length) {
     const [xMin, xMax] = x.domain();
     for (const pct of REF_PERCENTILES) {
@@ -80,8 +82,8 @@ export function renderSurvival(el, legendEl, manifest, region, scope) {
   // Mean-R reference line -- the region's headline "average difficulty" stat.
   if (meanR != null) {
     const my = y(meanR);
-    g.append("line").attr("class", "avgr-line").attr("x1", 0).attr("x2", iW).attr("y1", my).attr("y2", my);
-    g.append("text").attr("class", "avgr-label")
+    g.append("line").attr("class", "avg-line").attr("x1", 0).attr("x2", iW).attr("y1", my).attr("y2", my);
+    g.append("text").attr("class", "avg-label")
       .attr("x", iW - 4).attr("y", my - 5).attr("text-anchor", "end")
       .text(`avg R = ${meanR.toFixed(2)}×`);
   }
@@ -116,7 +118,7 @@ export function renderSurvival(el, legendEl, manifest, region, scope) {
       `<span><span class="sw" style="background:var(--harder);opacity:.55"></span>harder than world</span>`,
       `<span><span class="sw" style="background:var(--easier);opacity:.55"></span>easier than world</span>`,
     ];
-    if (meanR != null) items.push(`<span><span class="sw-avgr"></span>mean R (1st&ndash;99th pct)</span>`);
+    if (meanR != null) items.push(`<span><span class="sw-avg"></span>mean R (1st&ndash;99th pct)</span>`);
     legendEl.innerHTML = items.join("");
   }
 }
