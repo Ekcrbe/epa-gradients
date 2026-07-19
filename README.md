@@ -13,17 +13,20 @@ EPA (Expected Points Added) is Statbotics' team rating. Using the **unitless**
 EPA (an Elo-style, cross-season-comparable scale, ~1500 average), we compare each
 region's skill distribution against the worldwide one at every skill level.
 
-**Primary metric — percentile displacement.** With `F_global`/`F_region` the CDFs
-of team strength and `Q_global` the global quantile function, on a global
-percentile axis `p`:
+**Primary metric — percentile displacement.** With `F_global` the worldwide CDF
+of team strength and `Q_region` the region's quantile function, on a
+**within-region** percentile axis `q` (a team's standing among its region's
+teams):
 
 ```
-D(p) = p − F_region( Q_global(p) )
+D(q) = F_global( Q_region(q) ) − q
 ```
 
-`D(p) > 0` → the region ranks a team of that skill lower than the world does
-(locally *harder*); `D(p) < 0` → *easier*. The zero-crossing is where a region
-flips from easier to harder. A secondary **survival ratio**
+`D(q) > 0` → a team at the q-th percentile of its region ranks higher than that
+worldwide, i.e. the region is locally *harder* (deeper); `D(q) < 0` → *easier*.
+The zero-crossing is where a region flips from easier to harder. (A
+worldwide-percentile variant, `p − F_region(Q_global(p))`, is still computed and
+retained in the per-region data files.) A secondary **survival ratio**
 `R(x) = (1 − F_region(x)) / (1 − F_global(x))` (log axis, tail-capped) probes the
 elite tail where percentile differences compress.
 

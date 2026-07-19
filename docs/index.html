@@ -11,7 +11,7 @@
   <header class="site-header">
     <h1>EPA Gradients</h1>
     <p class="tagline">How locally competitive difficulty compares to the worldwide baseline across team skill &mdash; by FRC region.</p>
-    <p class="intro">Each curve is a <em>percentile displacement</em>: <span class="k-hard">red</span> means the region is locally <strong>harder</strong> than the world at that skill level, <span class="k-easy">blue</span> means <strong>easier</strong>. Pick a region and season, or click any region in the grid below to focus it. See <a href="#methodology">how it&rsquo;s computed</a>.</p>
+    <p class="intro">Each curve is a <em>percentile displacement</em> across a team&rsquo;s standing <em>within its region</em>: <span class="k-hard">red</span> means the region is locally <strong>harder</strong> than the world at that level, <span class="k-easy">blue</span> means <strong>easier</strong>. Pick a region and season, or click any region in the grid below to focus it. See <a href="#methodology">how it&rsquo;s computed</a>.</p>
   </header>
 
   <main>
@@ -27,7 +27,6 @@
           <output id="year-out" class="year-out">2026</output>
           <label class="pooled-toggle"><input type="checkbox" id="pooled-toggle"> Pooled (all-time)</label>
           <label class="pooled-toggle"><input type="checkbox" id="single-toggle"> Single-year EPA</label>
-          <label class="pooled-toggle"><input type="checkbox" id="localaxis-toggle"> Local-percentile axis</label>
         </div>
       </div>
     </section>
@@ -90,9 +89,9 @@
       <summary><h2>Methodology</h2></summary>
       <div class="method-body">
         <h3>The metric &mdash; percentile displacement</h3>
-        <p>With <code>F_region</code> and <code>F_global</code> the CDFs of team strength and <code>Q_global</code> the worldwide quantile function, on a worldwide-percentile axis <code>p</code>:</p>
-        <p class="formula"><code>D(p) = p &minus; F_region( Q_global(p) )</code></p>
-        <p><code>D(p) &gt; 0</code> means a team at that worldwide skill level ranks <em>lower</em> within the region than it does worldwide &mdash; locally <strong>harder</strong>. <code>D(p) &lt; 0</code> is locally <strong>easier</strong>. The zero-crossing is the skill level where a region flips from easier to harder; it is only reported for regions that are meaningfully easier <em>and</em> harder somewhere (near-monotone regions show none).</p>
+        <p>With <code>F_global</code> the worldwide CDF of team strength and <code>Q_region</code> the region&rsquo;s quantile function, on a <strong>within-region</strong> percentile axis <code>q</code> (a team&rsquo;s standing among its region&rsquo;s teams):</p>
+        <p class="formula"><code>D(q) = F_global( Q_region(q) ) &minus; q</code></p>
+        <p><code>D(q) &gt; 0</code> means a team at the q-th percentile of its region ranks <em>higher</em> than that worldwide &mdash; the region is locally <strong>harder</strong> (deeper). <code>D(q) &lt; 0</code> is locally <strong>easier</strong>. The zero-crossing is the regional-rank level where a region flips from easier to harder; it is only reported for regions that are meaningfully easier <em>and</em> harder somewhere (near-monotone regions show none). A worldwide-percentile variant, <code>p &minus; F_region(Q_global(p))</code>, is retained in the data.</p>
 
         <h3>Team strength</h3>
         <p>Each snapshot is a <strong>postseason</strong> (2008&ndash;2026): the competitive state after that season. A region&rsquo;s teams are those that <em>competed in that season</em> &mdash; so the count reflects the region&rsquo;s current depth, not long-defunct teams. Strength is Statbotics&rsquo; <strong>unitless EPA</strong> (an Elo-style, cross-season-comparable rating, ~1500 average). By default each team&rsquo;s strength is a linear-recency <strong>weighted moving average</strong> (weights 4:3:2:1) of its unitless EPA over the four most recent seasons up to and including that one, which smooths a living team&rsquo;s rating; the <em>Single-year EPA</em> toggle uses that season&rsquo;s EPA alone. The canceled <strong>2020 and 2021</strong> seasons are dropped from every window (and produce no snapshot).</p>

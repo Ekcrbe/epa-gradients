@@ -27,7 +27,6 @@ const els = {
   yearOut: document.getElementById("year-out"),
   pooled: document.getElementById("pooled-toggle"),
   single: document.getElementById("single-toggle"),
-  localAxis: document.getElementById("localaxis-toggle"),
   scopeCaption: document.getElementById("scope-caption"),
   hero: document.querySelector(".hero"),
   title: document.getElementById("hero-title"),
@@ -50,7 +49,7 @@ const els = {
   sm: document.getElementById("smallmultiples"),
 };
 
-const state = { regionId: null, year: 2026, pooled: false, single: false, localAxis: false, sort: "meanD_desc", minN: 20, view: "heatmap" };
+const state = { regionId: null, year: 2026, pooled: false, single: false, sort: "meanD_desc", minN: 20, view: "heatmap" };
 let manifest = null, summary = null, currentRegion = null;
 
 init().catch((err) => { els.status.textContent = `Failed to load data: ${err.message}`; });
@@ -100,11 +99,6 @@ function wireEvents() {
     state.single = els.single.checked;
     renderSelected(); renderAllRegions();
   });
-  els.localAxis.addEventListener("change", () => {
-    // The local-percentile axis is a hero-only alternate view.
-    state.localAxis = els.localAxis.checked;
-    renderSelected();
-  });
   els.sort.addEventListener("change", () => { state.sort = els.sort.value; renderAllRegions(); });
   els.minn.addEventListener("input", () => {
     state.minN = +els.minn.value; els.minnOut.textContent = els.minn.value; renderAllRegions();
@@ -151,22 +145,17 @@ async function selectRegion(id, scroll) {
 const onSelect = (id) => selectRegion(id, true);
 
 function scopeLabel() {
-  const ax = state.localAxis ? " · regional-percentile axis" : "";
-  let base;
-  if (state.pooled) base = `pooled — all postseasons 2008–2026 · ${state.single ? "single-year EPA" : "4-year WMA"}`;
-  else if (state.single) base = `${state.year} postseason · single-year EPA`;
-  else {
-    const win = strengthWindow(state.year, manifest.model?.skip_years);
-    base = `${state.year} postseason · WMA of ${win[0]}–${win[win.length - 1]}`;
-  }
-  return base + ax;
+  if (state.pooled) return `pooled — all postseasons 2008–2026 · ${state.single ? "single-year EPA" : "4-year WMA"}`;
+  if (state.single) return `${state.year} postseason · single-year EPA`;
+  const win = strengthWindow(state.year, manifest.model?.skip_years);
+  return `${state.year} postseason · WMA of ${win[0]}–${win[win.length - 1]}`;
 }
 
-// Select the global or local-percentile-axis fields for the hero + its readouts.
-function axisView(sc) {
-  if (!state.localAxis) return sc;
+// The site shows the regional-percentile (local) axis; map a detail scope to it.
+// The worldwide-axis fields (D, band_lo, crossover, ...) remain in the data.
+function localView(sc) {
   return {
-    ...sc,
+    n: sc.n,
     D: sc.D_local,
     band_lo: sc.band_local_lo,
     band_hi: sc.band_local_hi,
@@ -197,11 +186,11 @@ function renderSelected() {
     els.chips.innerHTML = ""; els.legend.innerHTML = ""; els.readout.textContent = ""; els.status.textContent = "";
     return;
   }
-  const v = axisView(sc);
+  const v = localView(sc);
   els.readout.textContent = `${scopeLabel()}. ${describe(v)}`;
   renderChips(v);
   renderLegend(v);
-  renderHero(els.chart, manifest, region, scope, state.localAxis ? "local" : "global");
+  renderHero(els.chart, manifest, region, scope, "local");
   renderSurvival(els.survivalChart, region, scope);
   els.status.textContent = v.band_lo ? "" : `Small sample (n=${v.n}) — no bootstrap band shown; interpret the curve cautiously.`;
 }
@@ -211,15 +200,15 @@ function describe(sc) {
   let pos = 0;
   for (const v of D) if (v > 0) pos++;
   const frac = pos / n;
-  if (frac > 0.85) return "Locally harder than the world across nearly all skill levels.";
-  if (frac < 0.15) return "Locally easier than the world across nearly all skill levels.";
+  if (frac > 0.85) return "Locally harder than the world across nearly all of its teams.";
+  if (frac < 0.15) return "Locally easier than the world across nearly all of its teams.";
   if (sc.crossover != null) {
-    const xp = Math.round(sc.crossover * 100);
+    const xp = ordinal(Math.round(sc.crossover * 100));
     return D[n - 1] + D[n - 2] > 0
-      ? `Easier than the world for lower-skill teams but harder for elite teams — the flip is near the ${ordinal(xp)} percentile.`
-      : `Harder than the world for lower-skill teams but easier for elite teams — the flip is near the ${ordinal(xp)} percentile.`;
+      ? `Easier than the world among the region's lower-ranked teams but harder among its top teams — the flip is near the ${xp} regional percentile.`
+      : `Harder than the world among the region's lower-ranked teams but easier among its top teams — the flip is near the ${xp} regional percentile.`;
   }
-  return "A mix of locally harder and easier zones across the skill range.";
+  return "A mix of locally harder and easier standing across the region.";
 }
 
 function renderChips(sc) {

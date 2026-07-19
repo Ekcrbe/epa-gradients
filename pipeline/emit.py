@@ -99,12 +99,15 @@ def run(out: dict, settings: dict) -> None:
                     "R": _rlist(res["survival"]["R"], 3),
                 },
             }
+            # Summary drives the all-regions views, which now use the local
+            # (regional-percentile) axis. The global equivalents remain in the
+            # per-region detail files should we re-add the worldwide view.
             summary_scopes[k] = {
                 "n": res["n"],
-                "mean_D": _r(res["mean_D"], 4),
-                "crossover": _r(res["crossover"], 4),
-                "top_heaviness": _r(res["top_heaviness"], 4),
-                "D_coarse": _rlist(res["D_coarse"], 4),
+                "mean_D": _r(res["mean_D_local"], 4),
+                "crossover": _r(res["crossover_local"], 4),
+                "top_heaviness": _r(res["top_heaviness_local"], 4),
+                "D_coarse": _rlist(res["D_local_coarse"], 4),
             }
 
         (regions_dir / f"{rid}.json").write_text(json.dumps({

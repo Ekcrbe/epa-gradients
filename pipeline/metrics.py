@@ -90,6 +90,7 @@ def compute_region(region_vals, global_sorted, q_fine, q_coarse, p_fine, p_coars
     # convention (positive = locally harder); a hero-only alternate view.
     q_local = np.quantile(rs, p_fine)
     d_local = _ecdf_right(global_sorted, q_local) - p_fine
+    d_local_coarse = _ecdf_right(global_sorted, np.quantile(rs, p_coarse)) - p_coarse
     crossover_local, _ = _gate_crossover(p_fine, d_local, settings)
     lo_l, hi_l = bootstrap.band_local(rs, global_sorted, p_fine, settings, rng)
 
@@ -104,6 +105,7 @@ def compute_region(region_vals, global_sorted, q_fine, q_coarse, p_fine, p_coars
         "mean_D": float(d_fine.mean()),
         "top_heaviness": float(d_fine[top].mean()),
         "D_local": d_local,
+        "D_local_coarse": d_local_coarse,
         "band_local_lo": lo_l,
         "band_local_hi": hi_l,
         "crossover_local": crossover_local,

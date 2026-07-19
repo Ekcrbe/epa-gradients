@@ -86,5 +86,5 @@ export function renderHeatmap(el, { manifest, rows, M, selectedId, onSelect }) {
     .call(d3.axisBottom(x).ticks(6).tickFormat((d) => Math.round(d * 100)));
   svg.append("text").attr("class", "axis-title")
     .attr("x", labelW + iW / 2).attr("y", height - 2).attr("text-anchor", "middle")
-    .text("team skill — worldwide percentile");
+    .text("team standing — regional percentile");
 }
