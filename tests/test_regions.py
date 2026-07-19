@@ -50,7 +50,9 @@ def test_region_naming():
     assert regions.region_name("st_fl") == ("Florida", "state")
     assert regions.region_name("st_qc") == ("Québec", "state")
     assert regions.region_name("st_pa") == ("Rest of Pennsylvania", "state")
-    assert regions.region_name("st_sc") == ("South Carolina", "state")
+    # South Carolina is grouped with the districts (its present-day form),
+    # even though its id keeps the "st_" prefix from its pre-2023 years.
+    assert regions.region_name("st_sc") == ("South Carolina", "district")
     name, typ = regions.region_name("co_china")
     assert typ == "country"
     country_names = {"co_canada": "Rest of Canada", "co_chinese_taipei": "Taiwan"}

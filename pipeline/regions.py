@@ -45,6 +45,11 @@ DISTRICT_NAMES = {
     "ont": "Ontario",
     "pch": "Peachtree (Georgia)",
     "pnw": "Pacific Northwest",
+    # South Carolina is grouped with the districts, not the states, even
+    # though it spends pre-2023 seasons organized as its own state region --
+    # its present-day, and most-recent, form is the FIRST South Carolina
+    # district (see regions.sc_region_for_year for the merge).
+    "st_sc": "South Carolina",
     "win": "FIRST Wisconsin",
 }
 
