@@ -33,3 +33,32 @@ def band(
     lo = np.percentile(d_boot, settings["metrics"]["ci_low"], axis=0)
     hi = np.percentile(d_boot, settings["metrics"]["ci_high"], axis=0)
     return lo, hi
+
+
+def band_local(
+    region_vals: np.ndarray,
+    global_sorted: np.ndarray,
+    p_fine: np.ndarray,
+    settings: dict,
+    rng: np.random.Generator,
+) -> tuple[np.ndarray | None, np.ndarray | None]:
+    """Band for the local-percentile axis D_local(q) = F_global(Q_region(q)) - q.
+
+    Here the region resample determines the x-positions (its own quantiles),
+    which are then read against the fixed global CDF.
+    """
+    n = len(region_vals)
+    B = settings["metrics"]["bootstrap_B"]
+    if B <= 0 or n < settings["metrics"]["min_band_n"]:
+        return None, None
+
+    rs = np.asarray(region_vals, dtype=np.float64)
+    n_global = len(global_sorted)
+    boot = rs[rng.integers(0, n, size=(B, n))]                  # B x n resamples
+    q_boot = np.quantile(boot, p_fine, axis=1).T                # B x N region quantiles
+    f_global = np.searchsorted(global_sorted, q_boot, side="right") / n_global
+    d_boot = f_global - p_fine[None, :]
+
+    lo = np.percentile(d_boot, settings["metrics"]["ci_low"], axis=0)
+    hi = np.percentile(d_boot, settings["metrics"]["ci_high"], axis=0)
+    return lo, hi

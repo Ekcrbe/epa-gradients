@@ -86,6 +86,14 @@ def run(out: dict, settings: dict) -> None:
                 "crossings": [{"p": _r(c["p"], 4), "dir": c["dir"]} for c in res["crossings"]],
                 "mean_D": _r(res["mean_D"], 4),
                 "top_heaviness": _r(res["top_heaviness"], 4),
+                # Local-percentile axis (alternate hero view).
+                "D_local": _rlist(res["D_local"], 4),
+                "band_local_lo": _rlist(res["band_local_lo"], 4),
+                "band_local_hi": _rlist(res["band_local_hi"], 4),
+                "crossover_local": _r(res["crossover_local"], 4),
+                "mean_D_local": _r(res["mean_D_local"], 4),
+                "top_heaviness_local": _r(res["top_heaviness_local"], 4),
+                "q_local": _rlist(res["q_local"], 1),
                 "survival": {
                     "x": _rlist(res["survival"]["x"], 1),
                     "R": _rlist(res["survival"]["R"], 3),

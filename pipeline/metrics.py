@@ -65,22 +65,34 @@ def survival_tail(region_sorted, global_sorted, settings) -> dict:
     return {"x": x, "R": R, "p": p_tail}
 
 
+def _gate_crossover(p_fine, d, settings):
+    """Primary crossover, reported only for genuinely mixed, non-bottom-decile flips."""
+    crossings = find_crossings(p_fine, d)
+    tau = settings["metrics"]["crossover_min_side"]
+    is_mixed = d.min() <= -tau and d.max() >= tau
+    cx = primary_crossing(crossings) if is_mixed else None
+    if cx is not None and cx < settings["metrics"]["crossover_min_p"]:
+        cx = None
+    return cx, crossings
+
+
 def compute_region(region_vals, global_sorted, q_fine, q_coarse, p_fine, p_coarse, settings, rng) -> dict:
     rs = np.sort(np.asarray(region_vals, dtype=np.float64))
+    top = p_fine > 0.9
+
+    # Global-percentile axis: D(p) = p - F_region(Q_global(p)).
     d_fine = displacement(rs, q_fine, p_fine)
     d_coarse = displacement(rs, q_coarse, p_coarse)
-    crossings = find_crossings(p_fine, d_fine)
-    # Only a genuinely mixed region (meaningfully easier AND harder) has a
-    # crossover; near-monotone regions report None (see crossover_min_side).
-    tau = settings["metrics"]["crossover_min_side"]
-    is_mixed = d_fine.min() <= -tau and d_fine.max() >= tau
-    crossover = primary_crossing(crossings) if is_mixed else None
-    # Drop bottom-decile crossovers: sub-10th-percentile depth is noisy and a
-    # flip there is not a notable fact to report.
-    if crossover is not None and crossover < settings["metrics"]["crossover_min_p"]:
-        crossover = None
+    crossover, crossings = _gate_crossover(p_fine, d_fine, settings)
     lo, hi = bootstrap.band(rs, q_fine, p_fine, settings, rng)
-    top = p_fine > 0.9
+
+    # Local-percentile axis: D_local(q) = F_global(Q_region(q)) - q. Same sign
+    # convention (positive = locally harder); a hero-only alternate view.
+    q_local = np.quantile(rs, p_fine)
+    d_local = _ecdf_right(global_sorted, q_local) - p_fine
+    crossover_local, _ = _gate_crossover(p_fine, d_local, settings)
+    lo_l, hi_l = bootstrap.band_local(rs, global_sorted, p_fine, settings, rng)
+
     return {
         "n": int(len(rs)),
         "D_fine": d_fine,
@@ -91,6 +103,13 @@ def compute_region(region_vals, global_sorted, q_fine, q_coarse, p_fine, p_coars
         "crossings": crossings,
         "mean_D": float(d_fine.mean()),
         "top_heaviness": float(d_fine[top].mean()),
+        "D_local": d_local,
+        "band_local_lo": lo_l,
+        "band_local_hi": hi_l,
+        "crossover_local": crossover_local,
+        "mean_D_local": float(d_local.mean()),
+        "top_heaviness_local": float(d_local[top].mean()),
+        "q_local": q_local,
         "survival": survival_tail(rs, global_sorted, settings),
     }
 

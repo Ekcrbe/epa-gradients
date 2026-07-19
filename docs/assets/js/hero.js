@@ -9,16 +9,20 @@ function niceHalf(maxAbs) {
   return Math.ceil(raw / 0.02) * 0.02;
 }
 
-export function renderHero(el, manifest, region, scope) {
+export function renderHero(el, manifest, region, scope, axis = "global") {
   const p = manifest.grid.p_fine;
   const sc = region.scopes[scope];
-  const q = (manifest.globals[scope] || {}).q_fine || [];
+  const local = axis === "local";
+  const D = local ? sc.D_local : sc.D;
+  const lo = local ? sc.band_local_lo : sc.band_lo;
+  const hi = local ? sc.band_local_hi : sc.band_hi;
+  const cross = local ? sc.crossover_local : sc.crossover;
+  const q = local ? (sc.q_local || []) : ((manifest.globals[scope] || {}).q_fine || []);
   el.innerHTML = "";
   const tip = document.createElement("div");
   tip.className = "tooltip";
   el.appendChild(tip);
 
-  const D = sc.D, lo = sc.band_lo, hi = sc.band_hi;
   const n = p.length;
   const hasBand = Array.isArray(lo) && Array.isArray(hi);
 
@@ -68,13 +72,13 @@ export function renderHero(el, manifest, region, scope) {
   g.append("path").datum(idx).attr("class", "fill-easier").attr("clip-path", "url(#clip-down)").attr("d", area);
 
   // Zero-crossing marker.
-  if (sc.crossover != null) {
-    const cx = x(sc.crossover);
+  if (cross != null) {
+    const cx = x(cross);
     g.append("line").attr("class", "crossover-line").attr("x1", cx).attr("x2", cx).attr("y1", 0).attr("y2", iH);
     g.append("text").attr("class", "crossover-label")
       .attr("x", Math.min(cx + 5, iW - 4)).attr("y", 13)
       .attr("text-anchor", cx > iW - 60 ? "end" : "start")
-      .text(`crossover p${Math.round(sc.crossover * 100)}`);
+      .text(`crossover p${Math.round(cross * 100)}`);
   }
 
   // Zero line + curve.
@@ -88,7 +92,8 @@ export function renderHero(el, manifest, region, scope) {
   g.append("g").attr("class", "axis")
     .call(d3.axisLeft(y).ticks(7).tickFormat((d) => (d > 0 ? "+" : "") + Math.round(d * 100)));
   g.append("text").attr("class", "axis-title").attr("text-anchor", "middle")
-    .attr("x", iW / 2).attr("y", iH + 38).text("team skill — worldwide percentile");
+    .attr("x", iW / 2).attr("y", iH + 38)
+    .text(local ? "team standing — regional percentile" : "team skill — worldwide percentile");
   g.append("text").attr("class", "axis-title").attr("text-anchor", "middle")
     .attr("transform", `translate(${-42},${iH / 2}) rotate(-90)`).text("displacement D  (percentile points)");
 
@@ -111,14 +116,19 @@ export function renderHero(el, manifest, region, scope) {
       hDot.attr("cx", px).attr("cy", y(D[i]));
       const dPts = D[i] * 100;
       const harder = D[i] >= 0;
-      const regPct = Math.round((p[i] - D[i]) * 100);
       const epa = q[i] != null ? Math.round(q[i]) : null;
+      const head = local
+        ? `${ordinal(Math.round(p[i] * 100))} regional percentile`
+        : `${ordinal(Math.round(p[i] * 100))} worldwide percentile`;
+      const rank = local
+        ? `ranks ~${ordinal(Math.round((p[i] + D[i]) * 100))} worldwide`
+        : `ranks ~${ordinal(Math.round((p[i] - D[i]) * 100))} within ${region.name}`;
       tip.innerHTML =
-        `<div class="tt-p">${ordinal(Math.round(p[i] * 100))} worldwide percentile</div>` +
+        `<div class="tt-p">${head}</div>` +
         (epa != null ? `<div class="tt-row">≈ ${epa} unitless EPA</div>` : "") +
         `<div class="tt-row">D = <span class="${harder ? "tt-hard" : "tt-easy"}">${harder ? "+" : ""}${dPts.toFixed(1)} pts</span> — ` +
         `${harder ? "harder" : "easier"} here</div>` +
-        `<div class="tt-row">ranks ~${ordinal(regPct)} within ${region.name}</div>`;
+        `<div class="tt-row">${rank}</div>`;
       tip.style.opacity = 1;
       const tx = m.left + px + 14;
       tip.style.left = `${Math.min(tx, width - 230)}px`;
