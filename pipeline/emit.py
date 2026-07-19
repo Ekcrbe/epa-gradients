@@ -97,17 +97,22 @@ def run(out: dict, settings: dict) -> None:
                 "survival": {
                     "x": _rlist(res["survival"]["x"], 1),
                     "R": _rlist(res["survival"]["R"], 3),
+                    "mean_R": _r(res["survival"]["mean_R"], 4),
                 },
             }
             # Summary drives the all-regions views, which now use the local
             # (regional-percentile) axis. The global equivalents remain in the
             # per-region detail files should we re-add the worldwide view.
+            # mean_survival_R (the region's mean right-tail survival ratio,
+            # 1st-99th global percentile) is the site's "average difficulty"
+            # ranking stat -- used to sort the All Regions comparison views.
             summary_scopes[k] = {
                 "n": res["n"],
                 "mean_D": _r(res["mean_D_local"], 4),
                 "crossover": _r(res["crossover_local"], 4),
                 "top_heaviness": _r(res["top_heaviness_local"], 4),
                 "D_coarse": _rlist(res["D_local_coarse"], 4),
+                "mean_survival_R": _r(res["survival"]["mean_R"], 4),
             }
 
         (regions_dir / f"{rid}.json").write_text(json.dumps({

@@ -49,20 +49,29 @@ def primary_crossing(crossings: list[dict]) -> float | None:
 
 
 def survival_tail(region_sorted, global_sorted, settings) -> dict:
-    """R(x) = (1 - F_region(x)) / (1 - F_global(x)) over the trustworthy top tail."""
+    """R(x) = (1 - F_region(x)) / (1 - F_global(x)) over most of the distribution.
+
+    x sweeps global percentiles [survival_p_start, p_cap], where p_cap is
+    survival_p_end_cap (default 0.99, to avoid the /0 at the very top) backed
+    off further if the season's global n is too thin to trust that far.
+    mean_R -- the plain mean of R over that same grid -- is the region's
+    headline "average difficulty" summary stat (also used to sort All Regions).
+    """
+    m = settings["metrics"]
     n_glob = len(global_sorted)
-    frac = settings["metrics"]["survival_min_global_frac"]
-    min_teams = settings["metrics"]["survival_min_global_teams"]
-    p_cap = 1.0 - max(frac, min_teams / n_glob)
-    if p_cap <= 0.5:
-        return {"x": [], "R": [], "p": []}
-    p_tail = np.linspace(0.5, p_cap, 60)
+    p_cap = min(1.0 - max(m["survival_min_global_frac"], m["survival_min_global_teams"] / n_glob),
+                m["survival_p_end_cap"])
+    p_start = m["survival_p_start"]
+    if p_cap <= p_start:
+        return {"x": [], "R": [], "p": [], "mean_R": None}
+    p_tail = np.linspace(p_start, p_cap, m["survival_points"])
     x = np.quantile(global_sorted, p_tail)
     sg = 1.0 - _ecdf_right(global_sorted, x)
     sr = 1.0 - _ecdf_right(region_sorted, x)
     with np.errstate(divide="ignore", invalid="ignore"):
         R = np.where(sg > 0, sr / sg, np.nan)
-    return {"x": x, "R": R, "p": p_tail}
+    mean_R = float(np.nanmean(R)) if np.any(~np.isnan(R)) else None
+    return {"x": x, "R": R, "p": p_tail, "mean_R": mean_R}
 
 
 def _gate_crossover(p_fine, d, settings):

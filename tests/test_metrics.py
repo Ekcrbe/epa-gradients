@@ -42,6 +42,16 @@ def test_survival_tail_caps_and_ratios():
     global_sorted = np.sort(np.linspace(1000, 2000, 1000))
     region = np.sort(np.linspace(1500, 2100, 100))
     s = metrics.survival_tail(region, global_sorted, SETTINGS)
-    assert len(s["x"]) == len(s["R"]) > 0
-    assert max(s["p"]) <= 1.0 - SETTINGS["metrics"]["survival_min_global_frac"] + 1e-9
+    m = SETTINGS["metrics"]
+    assert len(s["x"]) == len(s["R"]) == m["survival_points"]
+    assert min(s["p"]) >= m["survival_p_start"] - 1e-9
+    assert max(s["p"]) <= m["survival_p_end_cap"] + 1e-9
     assert np.all(np.asarray(s["R"]) >= 0)
+    assert s["mean_R"] is not None
+
+
+def test_survival_mean_R_matches_manual_mean():
+    # Region == global -> R(x) ~ 1 everywhere -> mean_R ~ 1.
+    vals = np.sort(np.linspace(1000, 2000, 800))
+    s = metrics.survival_tail(vals, vals, SETTINGS)
+    assert abs(s["mean_R"] - 1.0) < 1e-6

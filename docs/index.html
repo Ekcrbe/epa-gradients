@@ -45,13 +45,14 @@
 
     <p id="app-status" class="app-status" role="status"></p>
 
-    <section class="survival card" aria-label="Elite-tail survival ratio">
+    <section class="survival card" aria-label="Right tail survival ratio">
       <div class="section-head">
-        <h2>Elite-tail depth</h2>
+        <h2>Right tail depth</h2>
         <p class="section-sub" id="survival-sub"></p>
       </div>
       <div id="survival-chart" class="chart-wrap"></div>
-      <p class="section-note">Survival ratio R(x) = a region's share of teams above each skill level &divide; the world's. Above 1 means a deeper elite tail than average; below 1, thinner. Log axis, capped where the global tail gets too thin to trust.</p>
+      <div class="legend" id="survival-legend"></div>
+      <p class="section-note">Survival ratio R(x) = a region's share of teams above each skill level &divide; the world's, shaded the same red/blue as the curve above. Faint dotted lines mark round worldwide percentiles to orient the (unitless EPA) x-axis. The dotted gold line is the region's mean R across the 1st&ndash;99th percentile &mdash; its overall &ldquo;average difficulty,&rdquo; and what the All Regions views below sort by. Log y-axis, capped where the global tail gets too thin to trust.</p>
     </section>
 
     <section class="allregions card" aria-label="All regions">
@@ -84,6 +85,22 @@
       <div id="smallmultiples" class="view-panel" hidden></div>
     </section>
 
+    <section class="comparison card" aria-label="Region comparison">
+      <div class="section-head">
+        <h2>Region comparison</h2>
+        <div class="ar-controls">
+          <label class="ar-ctl">Region 1 (x-axis)
+            <select id="cmp-region1"></select>
+          </label>
+          <label class="ar-ctl">Region 2 (y-axis)
+            <select id="cmp-region2"></select>
+          </label>
+        </div>
+      </div>
+      <div id="cmp-chart" class="chart-wrap"></div>
+      <p class="section-note">For each unitless EPA value, plots the percentile it lands at within Region 1 against the percentile it lands at within Region 2. Above the dashed y&nbsp;=&nbsp;x line, a team of that skill ranks higher in Region 2 than in Region 1 (Region 1 is deeper there); below it, the reverse. Identical regions trace the diagonal exactly.</p>
+    </section>
+
     <details id="methodology" class="methodology card">
       <summary><h2>Methodology</h2></summary>
       <div class="method-body">
@@ -101,8 +118,8 @@
         <h3>Baseline &amp; uncertainty</h3>
         <p>The worldwide baseline is the distribution of <em>all</em> teams for that season (or pooled across all seasons), including the region itself. The shaded band is a <strong>95% bootstrap</strong> confidence interval (the region resampled against a fixed world). Small regions are noisy: those with fewer than five teams show no band, and <code>n</code> is shown everywhere &mdash; read small samples with the band and count in mind.</p>
 
-        <h3>Elite-tail survival ratio</h3>
-        <p><code>R(x) = (1 &minus; F_region(x)) / (1 &minus; F_global(x))</code> compares a region&rsquo;s share of teams above each skill level to the world&rsquo;s, on a log axis, capped where the global tail gets too thin to trust. Above 1 = a deeper elite tail than average.</p>
+        <h3>Right tail depth &amp; average difficulty</h3>
+        <p><code>R(x) = (1 &minus; F_region(x)) / (1 &minus; F_global(x))</code> compares a region&rsquo;s share of teams above each skill level to the world&rsquo;s, on a log axis over the global 1st&ndash;99th percentile (the 100th is skipped to avoid dividing by zero). Above 1 = deeper than average at that level. The plain mean of <code>R</code> across that same range is each region&rsquo;s single <strong>average difficulty</strong> number &mdash; the most meaningful one-number summary, and what sorts the All Regions heatmap and small multiples below.</p>
 
         <h3>Data</h3>
         <p>Unitless EPA from <a href="https://www.statbotics.io/">Statbotics</a>: seasons through 2023 from a pinned commit of the <a href="https://github.com/avgupta456/statbotics-csvs">statbotics-csvs</a> dataset, and 2024&ndash;2026 from the Statbotics API. Everything is fetched, normalized, and computed offline; this page loads only precomputed static JSON and never calls an API at runtime.</p>

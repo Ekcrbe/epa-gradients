@@ -52,9 +52,15 @@ crossover_min_side = 0.02
 # Crossovers in the bottom decile are not reported: sub-10th-percentile
 # performance is noisy year-over-year and a flip there is not a notable fact.
 crossover_min_p = 0.10
-# Survival ratio R(x) is only reported where the global tail is thick enough.
+# Survival ratio R(x) is plotted/averaged over global percentiles
+# [survival_p_start, min(adaptive-thinness-cap, survival_p_end_cap)]. The
+# adaptive cap backs off further if the season's global n is too small to
+# trust the tail at survival_p_end_cap.
 survival_min_global_frac = 0.01
 survival_min_global_teams = 5
+survival_p_start = 0.01      # 1st percentile
+survival_p_end_cap = 0.99    # 99th percentile -- skips the 100th to avoid /0
+survival_points = 300        # x-resolution of the plotted curve
 
 [emit]
 docs_data = "docs/data"

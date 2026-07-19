@@ -4,14 +4,19 @@ import { renderHero } from "./hero.js";
 import { renderHeatmap } from "./heatmap.js";
 import { renderSmallMultiples } from "./smallmultiples.js";
 import { renderSurvival } from "./survival.js";
+import { renderComparison } from "./comparison.js";
 import { divergingColor } from "./theme.js";
 
 const TYPE_LABEL = { district: "Districts", state: "States / provinces", country: "Countries" };
 const TYPE_ORDER = ["district", "state", "country"];
 
+// "Avg difficulty" sorts by mean right-tail survival ratio (see survival.js /
+// the Methodology section) -- the site's headline single-number difficulty
+// stat. Regions with no computable value (too little tail depth) fall back to
+// R=1 ("average"), neither pushed to the hard nor the easy end.
 const SORTS = {
-  meanD_desc: (a, b) => b.mean_D - a.mean_D,
-  meanD_asc: (a, b) => a.mean_D - b.mean_D,
+  meanD_desc: (a, b) => (b.mean_survival_R ?? 1) - (a.mean_survival_R ?? 1),
+  meanD_asc: (a, b) => (a.mean_survival_R ?? 1) - (b.mean_survival_R ?? 1),
   top_desc: (a, b) => b.top_heaviness - a.top_heaviness,
   n_desc: (a, b) => b.n - a.n,
 };
@@ -33,6 +38,10 @@ const els = {
   stamp: document.getElementById("build-stamp"),
   survivalSub: document.getElementById("survival-sub"),
   survivalChart: document.getElementById("survival-chart"),
+  survivalLegend: document.getElementById("survival-legend"),
+  cmpRegion1: document.getElementById("cmp-region1"),
+  cmpRegion2: document.getElementById("cmp-region2"),
+  cmpChart: document.getElementById("cmp-chart"),
   sort: document.getElementById("sort-select"),
   minn: document.getElementById("minn-range"),
   minnOut: document.getElementById("minn-out"),
@@ -44,7 +53,10 @@ const els = {
   sm: document.getElementById("smallmultiples"),
 };
 
-const state = { regionId: null, year: 2026, pooled: false, single: false, sort: "meanD_desc", minN: 20, view: "heatmap" };
+const state = {
+  regionId: null, year: 2026, pooled: false, single: false, sort: "meanD_desc", minN: 20, view: "heatmap",
+  cmpRegion1: null, cmpRegion2: null,
+};
 let manifest = null, summary = null, currentRegion = null;
 
 init().catch((err) => { els.status.textContent = `Failed to load data: ${err.message}`; });
@@ -56,13 +68,18 @@ async function init() {
     els.stamp.textContent = `Built ${manifest.build.generated.slice(0, 10)} · commit ${String(manifest.build.csv_commit).slice(0, 7)}.`;
   }
   wireEvents();
+  state.cmpRegion1 = manifest.regions[0].id;
+  state.cmpRegion2 = manifest.regions[1]?.id || manifest.regions[0].id;
+  els.cmpRegion1.value = state.cmpRegion1;
+  els.cmpRegion2.value = state.cmpRegion2;
   await selectRegion(manifest.regions[0].id, false);
+  await renderCompare();
 }
 
-function buildRegionOptions() {
+function populateRegionSelect(selectEl) {
   const byType = new Map(TYPE_ORDER.map((t) => [t, []]));
   for (const r of manifest.regions) byType.get(r.type)?.push(r);
-  els.region.innerHTML = "";
+  selectEl.innerHTML = "";
   for (const t of TYPE_ORDER) {
     const list = byType.get(t) || [];
     if (!list.length) continue;
@@ -74,8 +91,14 @@ function buildRegionOptions() {
       o.textContent = `${r.name} (n=${r.n_latest ?? r.n_pooled ?? "?"})`;
       og.appendChild(o);
     }
-    els.region.appendChild(og);
+    selectEl.appendChild(og);
   }
+}
+
+function buildRegionOptions() {
+  populateRegionSelect(els.region);
+  populateRegionSelect(els.cmpRegion1);
+  populateRegionSelect(els.cmpRegion2);
 }
 
 function wireEvents() {
@@ -83,16 +106,16 @@ function wireEvents() {
   els.year.addEventListener("input", () => {
     state.year = +els.year.value;
     els.yearOut.textContent = els.year.value;
-    if (!state.pooled) { renderSelected(); renderAllRegions(); }
+    if (!state.pooled) { renderSelected(); renderAllRegions(); renderCompare(); }
   });
   els.pooled.addEventListener("change", () => {
     state.pooled = els.pooled.checked;
     els.year.disabled = state.pooled;
-    renderSelected(); renderAllRegions();
+    renderSelected(); renderAllRegions(); renderCompare();
   });
   els.single.addEventListener("change", () => {
     state.single = els.single.checked;
-    renderSelected(); renderAllRegions();
+    renderSelected(); renderAllRegions(); renderCompare();
   });
   els.sort.addEventListener("change", () => { state.sort = els.sort.value; renderAllRegions(); });
   els.minn.addEventListener("input", () => {
@@ -100,10 +123,12 @@ function wireEvents() {
   });
   els.viewHeatmap.addEventListener("click", () => setView("heatmap"));
   els.viewGrid.addEventListener("click", () => setView("grid"));
+  els.cmpRegion1.addEventListener("change", () => { state.cmpRegion1 = els.cmpRegion1.value; renderCompare(); });
+  els.cmpRegion2.addEventListener("change", () => { state.cmpRegion2 = els.cmpRegion2.value; renderCompare(); });
   let t;
-  window.addEventListener("resize", () => { clearTimeout(t); t = setTimeout(() => { renderSelected(); renderAllRegions(); }, 160); });
+  window.addEventListener("resize", () => { clearTimeout(t); t = setTimeout(() => { renderSelected(); renderAllRegions(); renderCompare(); }, 160); });
   const mq = window.matchMedia("(prefers-color-scheme: dark)");
-  mq.addEventListener?.("change", () => { renderSelected(); renderAllRegions(); });
+  mq.addEventListener?.("change", () => { renderSelected(); renderAllRegions(); renderCompare(); });
 }
 
 function setView(v) {
@@ -185,7 +210,7 @@ function renderSelected() {
       msg = `${region.name} has no teams in ${state.year}.<br>Available: ${span}.`;
     }
     els.chart.innerHTML = `<div class="empty-state">${msg}</div>`;
-    els.survivalChart.innerHTML = "";
+    els.survivalChart.innerHTML = ""; els.survivalLegend.innerHTML = "";
     els.chips.innerHTML = ""; els.legend.innerHTML = ""; els.readout.textContent = ""; els.status.textContent = "";
     return;
   }
@@ -194,7 +219,7 @@ function renderSelected() {
   renderChips(v);
   renderLegend(v);
   renderHero(els.chart, manifest, region, scope, "local");
-  renderSurvival(els.survivalChart, region, scope);
+  renderSurvival(els.survivalChart, els.survivalLegend, manifest, region, scope);
   els.status.textContent = v.band_lo ? "" : `Small sample (n=${v.n}) — no bootstrap band shown; interpret the curve cautiously.`;
 }
 
@@ -231,7 +256,14 @@ function buildRows(scope) {
   const rows = [];
   for (const meta of manifest.regions) {
     const s = summary.regions[meta.id]?.scopes?.[scope];
-    if (s) rows.push({ id: meta.id, name: meta.name, type: meta.type, ...s });
+    if (!s) continue;
+    // In pooled mode, s.n is a sum across every postseason the region has --
+    // a region active many years accumulates a large total even with few
+    // teams per year. Use the average per-year n instead, so the min-n filter
+    // (and the displayed count) reflect a typical season, not the year count.
+    const yearsCount = Math.max(1, (meta.years || []).length);
+    const n = state.pooled ? Math.round(s.n / yearsCount) : s.n;
+    rows.push({ id: meta.id, name: meta.name, type: meta.type, ...s, n });
   }
   return rows;
 }
@@ -250,12 +282,20 @@ function renderAllRegions() {
   const scope = scopeKey();
   const all = buildRows(scope);
   const rows = all.filter((r) => r.n >= state.minN).sort(SORTS[state.sort]);
-  els.arCount.textContent = `${rows.length} of ${all.length} regions · n ≥ ${state.minN} · ${state.pooled ? "pooled" : state.year}`;
+  const nLabel = state.pooled ? `avg n/yr ≥ ${state.minN}` : `n ≥ ${state.minN}`;
+  els.arCount.textContent = `${rows.length} of ${all.length} regions · ${nLabel} · ${state.pooled ? "pooled" : state.year}`;
   const M = colorDomain(rows.length ? rows : all);
   renderLegendBar(M);
   const opts = { manifest, rows, M, selectedId: state.regionId, onSelect };
   if (state.view === "grid") renderSmallMultiples(els.sm, opts);
   else renderHeatmap(els.heatmap, opts);
+}
+
+// --- region comparison ---
+async function renderCompare() {
+  if (!state.cmpRegion1 || !state.cmpRegion2 || !manifest) return;
+  const [r1, r2] = await Promise.all([loadRegion(state.cmpRegion1), loadRegion(state.cmpRegion2)]);
+  renderComparison(els.cmpChart, manifest, r1, r2, scopeKey());
 }
 
 function renderLegendBar(M) {
