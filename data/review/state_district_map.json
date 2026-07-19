@@ -59,12 +59,12 @@
   ],
   "specials": {
     "SC": {
-      "<=2022": "st_sc (own state region)",
-      "2023-2024": "pch",
-      ">=2025": "fsc"
+      "<=2022": "st_sc (South Carolina)",
+      "2023-2024": "pch (Peachtree)",
+      ">=2025": "st_sc again (present-day FIRST South Carolina district, merged)"
     },
     "PA": {
-      "active>=2012": "present-day district as given (fma, else st_pa)",
+      "active>=2012": "present-day district as given (fma, else st_pa / Rest of Pennsylvania)",
       "defunct<2012": "manual via config/pa_overrides.csv (see pa_defunct_teams.csv)"
     },
     "notes": "A few NH teams have null district in 2026; the modal rule assigns all NH -> ne."

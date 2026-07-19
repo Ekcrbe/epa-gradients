@@ -1,5 +1,5 @@
 // Hero displacement chart: D(p) with diverging fill, bootstrap band,
-// zero line, zero-crossing marker, and hover readout. Uses the global d3.
+// zero line, and hover readout. Uses the global d3.
 import { ordinal } from "./format.js";
 
 const M_MIN = 0.08;
@@ -16,7 +16,6 @@ export function renderHero(el, manifest, region, scope, axis = "global") {
   const D = local ? sc.D_local : sc.D;
   const lo = local ? sc.band_local_lo : sc.band_lo;
   const hi = local ? sc.band_local_hi : sc.band_hi;
-  const cross = local ? sc.crossover_local : sc.crossover;
   const q = local ? (sc.q_local || []) : ((manifest.globals[scope] || {}).q_fine || []);
   el.innerHTML = "";
   const tip = document.createElement("div");
@@ -70,16 +69,6 @@ export function renderHero(el, manifest, region, scope, axis = "global") {
     .attr("x", 0).attr("y", zeroY).attr("width", iW).attr("height", Math.max(0, iH - zeroY));
   g.append("path").datum(idx).attr("class", "fill-harder").attr("clip-path", "url(#clip-up)").attr("d", area);
   g.append("path").datum(idx).attr("class", "fill-easier").attr("clip-path", "url(#clip-down)").attr("d", area);
-
-  // Zero-crossing marker.
-  if (cross != null) {
-    const cx = x(cross);
-    g.append("line").attr("class", "crossover-line").attr("x1", cx).attr("x2", cx).attr("y1", 0).attr("y2", iH);
-    g.append("text").attr("class", "crossover-label")
-      .attr("x", Math.min(cx + 5, iW - 4)).attr("y", 13)
-      .attr("text-anchor", cx > iW - 60 ? "end" : "start")
-      .text(`crossover p${Math.round(cross * 100)}`);
-  }
 
   // Zero line + curve.
   g.append("line").attr("class", "zero-line").attr("x1", 0).attr("x2", iW).attr("y1", zeroY).attr("y2", zeroY);

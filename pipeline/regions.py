@@ -5,11 +5,14 @@ Rules (see README / plan):
     (country, state) -> district map, then applied to all seasons by a team's
     canonical (most-recent) state. This absorbs district code changes
     (e.g. chs -> fch) and stray null-district noise (e.g. a few NH teams).
-  * SC is time-dependent: own state region <=2022, pch in 2023-2024, fsc from 2025.
+  * SC is time-dependent: own state region ("South Carolina") <=2022 and again
+    from 2025 (the present-day FIRST South Carolina district years), merged into
+    one "st_sc" region since they never overlap in time; pch (Peachtree) in
+    2023-2024 instead.
   * PA is split: teams active in/after 2012 take their present-day district as
-    given (fma, else non-district PA); teams defunct before 2012 are emitted to
-    data/review/pa_defunct_teams.csv for manual assignment via
-    config/pa_overrides.csv.
+    given (fma, else non-district PA, displayed "Rest of Pennsylvania"); teams
+    defunct before 2012 are emitted to data/review/pa_defunct_teams.csv for
+    manual assignment via config/pa_overrides.csv.
   * Remaining non-district teams group by state if USA (or state == QC),
     otherwise by country.
 
@@ -37,7 +40,6 @@ DISTRICT_NAMES = {
     "fit": "FIRST in Texas",
     "fma": "FIRST Mid-Atlantic",
     "fnc": "FIRST North Carolina",
-    "fsc": "FIRST South Carolina",
     "isr": "Israel",
     "ne": "New England",
     "ont": "Ontario",
@@ -65,8 +67,13 @@ US_STATES = {
 
 
 # Display-name overrides for country regions (Ontario and Québec are separate
-# regions, so the remaining Canadian provinces are "Rest of Canada").
-COUNTRY_DISPLAY = {"Canada": "Rest of Canada"}
+# regions, so the remaining Canadian provinces are "Rest of Canada"; "Chinese
+# Taipei" is FIRST's event-registration name for Taiwan).
+COUNTRY_DISPLAY = {"Canada": "Rest of Canada", "Chinese Taipei": "Taiwan"}
+
+# Display-name overrides for state regions (FMA is its own region, so the rest
+# of Pennsylvania is "Rest of Pennsylvania").
+STATE_DISPLAY = {"PA": "Rest of Pennsylvania"}
 
 
 def _slug(s: str) -> str:
@@ -92,11 +99,15 @@ def build_district_map(df: pd.DataFrame, year: int = 2026) -> dict[tuple, str]:
 
 
 def sc_region_for_year(year: int, settings: dict) -> str:
+    """South Carolina's region for a snapshot year.
+
+    <= 2022 and >= sc_fsc_from (the present-day FIRST South Carolina district
+    years) both map to "st_sc" -- they never overlap in time, so they merge
+    into one "South Carolina" region with a gap in the pch (Peachtree) years.
+    """
     r = settings["regions"]
     if year in r["sc_pch_years"]:
         return "pch"
-    if year >= r["sc_fsc_from"]:
-        return "fsc"
     return "st_sc"
 
 
@@ -107,7 +118,8 @@ def region_name(region_id: str, country_names: dict[str, str] | None = None) -> 
         return DISTRICT_NAMES[region_id], "district"
     if region_id.startswith("st_"):
         code = region_id[3:].upper()
-        return US_STATES.get(code, code), "state"
+        name = US_STATES.get(code, code)
+        return STATE_DISPLAY.get(code, name), "state"
     if region_id.startswith("co_"):
         return country_names.get(region_id, region_id[3:].replace("_", " ").title()), "country"
     return region_id, "unknown"
@@ -189,9 +201,9 @@ def classify(df: pd.DataFrame, settings: dict) -> tuple[pd.DataFrame, dict]:
     config.INTERIM.mkdir(parents=True, exist_ok=True)
     out.to_parquet(config.INTERIM / "team_region.parquet", index=False)
 
-    # Region metadata for every region id that can appear (incl. SC's three).
+    # Region metadata for every region id that can appear (incl. SC's dynamic targets).
     region_ids = set(out["base_region"].dropna().unique())
-    region_ids |= {"st_sc", "pch", "fsc"}  # SC dynamic targets
+    region_ids |= {"st_sc", "pch"}
     meta = {rid: dict(zip(("name", "type"), region_name(rid, country_names))) for rid in sorted(region_ids)}
     (config.INTERIM / "region_meta.json").write_text(
         json.dumps(meta, indent=2, ensure_ascii=False), encoding="utf-8"
@@ -222,8 +234,9 @@ def _emit_review(df, dmap, team_region, pa_defunct, unmapped, settings) -> None:
         "district_map": {f"{c}|{s or ''}": d for (c, s), d in sorted(dmap.items(), key=lambda kv: kv[1])},
         "usa_non_district_states": non_district_states,
         "specials": {
-            "SC": {"<=2022": "st_sc (own state region)", "2023-2024": "pch", ">=2025": "fsc"},
-            "PA": {"active>=2012": "present-day district as given (fma, else st_pa)",
+            "SC": {"<=2022": "st_sc (South Carolina)", "2023-2024": "pch (Peachtree)",
+                   ">=2025": "st_sc again (present-day FIRST South Carolina district, merged)"},
+            "PA": {"active>=2012": "present-day district as given (fma, else st_pa / Rest of Pennsylvania)",
                    "defunct<2012": "manual via config/pa_overrides.csv (see pa_defunct_teams.csv)"},
             "notes": "A few NH teams have null district in 2026; the modal rule assigns all NH -> ne.",
         },

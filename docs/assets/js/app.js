@@ -5,18 +5,13 @@ import { renderHeatmap } from "./heatmap.js";
 import { renderSmallMultiples } from "./smallmultiples.js";
 import { renderSurvival } from "./survival.js";
 import { divergingColor } from "./theme.js";
-import { ordinal } from "./format.js";
 
 const TYPE_LABEL = { district: "Districts", state: "States / provinces", country: "Countries" };
 const TYPE_ORDER = ["district", "state", "country"];
 
-// Regions with no easier→harder crossing get a sentinel: harder-everywhere
-// sorts to the "flips early" (hard) end, easier-everywhere to the far end.
-const effCross = (r) => (r.crossover != null ? r.crossover : (r.mean_D > 0 ? -1 : 2));
 const SORTS = {
   meanD_desc: (a, b) => b.mean_D - a.mean_D,
   meanD_asc: (a, b) => a.mean_D - b.mean_D,
-  crossover_asc: (a, b) => effCross(a) - effCross(b),
   top_desc: (a, b) => b.top_heaviness - a.top_heaviness,
   n_desc: (a, b) => b.n - a.n,
 };
@@ -159,7 +154,6 @@ function localView(sc) {
     D: sc.D_local,
     band_lo: sc.band_local_lo,
     band_hi: sc.band_local_hi,
-    crossover: sc.crossover_local,
     mean_D: sc.mean_D_local,
     top_heaviness: sc.top_heaviness_local,
   };
@@ -176,11 +170,20 @@ function renderSelected() {
   els.survivalSub.textContent = `${region.name} · ${state.pooled ? "pooled" : state.year}`;
 
   if (!sc) {
+    const rc = manifest.regions_config || {};
+    const inScGap = region.id === rc.sc_gap_region && !state.pooled
+      && (rc.sc_gap_years || []).includes(state.year);
     const canceled = (manifest.model?.skip_years || []).includes(state.year);
     const span = `${region.years[0]}–${region.years[region.years.length - 1]}`;
-    const msg = canceled
-      ? `The ${state.year} season was canceled — no snapshot.`
-      : `${region.name} has no teams in ${state.year}.<br>Available: ${span}.`;
+    let msg;
+    if (inScGap) {
+      const redirect = manifest.regions.find((r) => r.id === rc.sc_gap_redirect);
+      msg = `South Carolina competed as part of the ${redirect ? redirect.name : "Peachtree"} district in ${state.year}.<br>Select <strong>${redirect ? redirect.name : "Peachtree"}</strong> from the region list to see this season.`;
+    } else if (canceled) {
+      msg = `The ${state.year} season was canceled — no snapshot.`;
+    } else {
+      msg = `${region.name} has no teams in ${state.year}.<br>Available: ${span}.`;
+    }
     els.chart.innerHTML = `<div class="empty-state">${msg}</div>`;
     els.survivalChart.innerHTML = "";
     els.chips.innerHTML = ""; els.legend.innerHTML = ""; els.readout.textContent = ""; els.status.textContent = "";
@@ -202,23 +205,15 @@ function describe(sc) {
   const frac = pos / n;
   if (frac > 0.85) return "Locally harder than the world across nearly all of its teams.";
   if (frac < 0.15) return "Locally easier than the world across nearly all of its teams.";
-  if (sc.crossover != null) {
-    const xp = ordinal(Math.round(sc.crossover * 100));
-    return D[n - 1] + D[n - 2] > 0
-      ? `Easier than the world among the region's lower-ranked teams but harder among its top teams — the flip is near the ${xp} regional percentile.`
-      : `Harder than the world among the region's lower-ranked teams but easier among its top teams — the flip is near the ${xp} regional percentile.`;
-  }
   return "A mix of locally harder and easier standing across the region.";
 }
 
 function renderChips(sc) {
   const md = sc.mean_D * 100;
   const cls = sc.mean_D > 0 ? "harder" : "easier";
-  const cross = sc.crossover != null ? `p${Math.round(sc.crossover * 100)}` : "—";
   els.chips.innerHTML =
     chip("teams (n)", sc.n) +
-    chip("avg vs world", `${md > 0 ? "+" : ""}${md.toFixed(1)}`, cls) +
-    chip("crossover", cross);
+    chip("avg vs world", `${md > 0 ? "+" : ""}${md.toFixed(1)}`, cls);
 }
 const chip = (k, v, cls = "") => `<div class="chip ${cls}"><span class="k">${k}</span><span class="v">${v}</span></div>`;
 
@@ -228,7 +223,6 @@ function renderLegend(sc) {
     `<span><span class="sw" style="background:var(--easier);opacity:.55"></span>easier than world</span>`,
   ];
   if (sc.band_lo) items.push(`<span><span class="sw" style="background:var(--band);opacity:.35"></span>95% bootstrap band</span>`);
-  if (sc.crossover != null) items.push(`<span><span class="sw-cross"></span>crossover</span>`);
   els.legend.innerHTML = items.join("");
 }
 

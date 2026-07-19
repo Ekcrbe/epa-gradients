@@ -62,7 +62,6 @@
             <select id="sort-select">
               <option value="meanD_desc">Avg difficulty (hard &rarr; easy)</option>
               <option value="meanD_asc">Avg difficulty (easy &rarr; hard)</option>
-              <option value="crossover_asc">Crossover (low &rarr; high)</option>
               <option value="top_desc">Top-heaviness (elite depth)</option>
               <option value="n_desc">Team count (n)</option>
             </select>
@@ -91,7 +90,7 @@
         <h3>The metric &mdash; percentile displacement</h3>
         <p>With <code>F_global</code> the worldwide CDF of team strength and <code>Q_region</code> the region&rsquo;s quantile function, on a <strong>within-region</strong> percentile axis <code>q</code> (a team&rsquo;s standing among its region&rsquo;s teams):</p>
         <p class="formula"><code>D(q) = F_global( Q_region(q) ) &minus; q</code></p>
-        <p><code>D(q) &gt; 0</code> means a team at the q-th percentile of its region ranks <em>higher</em> than that worldwide &mdash; the region is locally <strong>harder</strong> (deeper). <code>D(q) &lt; 0</code> is locally <strong>easier</strong>. The zero-crossing is the regional-rank level where a region flips from easier to harder; it is only reported for regions that are meaningfully easier <em>and</em> harder somewhere (near-monotone regions show none). A worldwide-percentile variant, <code>p &minus; F_region(Q_global(p))</code>, is retained in the data.</p>
+        <p><code>D(q) &gt; 0</code> means a team at the q-th percentile of its region ranks <em>higher</em> than that worldwide &mdash; the region is locally <strong>harder</strong> (deeper). <code>D(q) &lt; 0</code> is locally <strong>easier</strong>. Where the curve crosses zero, a region flips from easier to harder (or vice versa) &mdash; the shape of each curve is left for the plot itself rather than reduced to a single number. A worldwide-percentile variant, <code>p &minus; F_region(Q_global(p))</code>, is retained in the data.</p>
 
         <h3>Team strength</h3>
         <p>Each snapshot is a <strong>postseason</strong> (2008&ndash;2026): the competitive state after that season. A region&rsquo;s teams are those that <em>competed in that season</em> &mdash; so the count reflects the region&rsquo;s current depth, not long-defunct teams. Strength is Statbotics&rsquo; <strong>unitless EPA</strong> (an Elo-style, cross-season-comparable rating, ~1500 average). By default each team&rsquo;s strength is a linear-recency <strong>weighted moving average</strong> (weights 4:3:2:1) of its unitless EPA over the four most recent seasons up to and including that one, which smooths a living team&rsquo;s rating; the <em>Single-year EPA</em> toggle uses that season&rsquo;s EPA alone. The canceled <strong>2020 and 2021</strong> seasons are dropped from every window (and produce no snapshot).</p>

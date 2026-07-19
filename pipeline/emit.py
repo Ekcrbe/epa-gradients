@@ -111,7 +111,7 @@ def run(out: dict, settings: dict) -> None:
             }
 
         (regions_dir / f"{rid}.json").write_text(json.dumps({
-            "id": rid, "name": name, "type": rtype, "scopes": detail_scopes,
+            "id": rid, "name": name, "type": rtype, "years": years_present, "scopes": detail_scopes,
         }, ensure_ascii=False), encoding="utf-8")
 
         summary_regions[rid] = {"scopes": summary_scopes}
@@ -142,6 +142,13 @@ def run(out: dict, settings: dict) -> None:
             "wma_weights": settings["model"]["wma_weights"],
             "skip_years": settings["model"]["skip_years"],
             "min_band_n": settings["metrics"]["min_band_n"],
+        },
+        "regions_config": {
+            # South Carolina has no snapshot for these years under "st_sc" --
+            # it competed as part of Peachtree ("pch") instead (see regions.py).
+            "sc_gap_region": "st_sc",
+            "sc_gap_years": settings["regions"]["sc_pch_years"],
+            "sc_gap_redirect": "pch",
         },
         "grid": {"p_fine": _rlist(p_fine, 4), "p_coarse": _rlist(p_coarse, 4)},
         "scopes": list(globals_by_scope.keys()),

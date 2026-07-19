@@ -22,12 +22,14 @@ def test_build_district_map_is_modal_and_by_state():
 
 
 def test_sc_time_rule():
+    # <=2022 and >=2025 (sc_fsc_from) both merge into "st_sc" since they never
+    # overlap with the pch (Peachtree) years.
     assert regions.sc_region_for_year(2019, SETTINGS) == "st_sc"
     assert regions.sc_region_for_year(2022, SETTINGS) == "st_sc"
     assert regions.sc_region_for_year(2023, SETTINGS) == "pch"
     assert regions.sc_region_for_year(2024, SETTINGS) == "pch"
-    assert regions.sc_region_for_year(2025, SETTINGS) == "fsc"
-    assert regions.sc_region_for_year(2027, SETTINGS) == "fsc"
+    assert regions.sc_region_for_year(2025, SETTINGS) == "st_sc"
+    assert regions.sc_region_for_year(2027, SETTINGS) == "st_sc"
 
 
 def test_region_for_year_applies_sc_dynamic():
@@ -36,14 +38,21 @@ def test_region_for_year_applies_sc_dynamic():
         {"team": 20, "base_region": None, "is_sc": True},
     ])
     r2022 = regions.region_for_year(tr, 2022, SETTINGS)
+    r2023 = regions.region_for_year(tr, 2023, SETTINGS)
     r2026 = regions.region_for_year(tr, 2026, SETTINGS)
     assert r2022[10] == "fim" and r2022[20] == "st_sc"
-    assert r2026[10] == "fim" and r2026[20] == "fsc"
+    assert r2023[20] == "pch"
+    assert r2026[10] == "fim" and r2026[20] == "st_sc"  # merged, not "fsc"
 
 
 def test_region_naming():
     assert regions.region_name("fim") == ("FIRST in Michigan", "district")
     assert regions.region_name("st_fl") == ("Florida", "state")
     assert regions.region_name("st_qc") == ("Québec", "state")
+    assert regions.region_name("st_pa") == ("Rest of Pennsylvania", "state")
+    assert regions.region_name("st_sc") == ("South Carolina", "state")
     name, typ = regions.region_name("co_china")
     assert typ == "country"
+    country_names = {"co_canada": "Rest of Canada", "co_chinese_taipei": "Taiwan"}
+    assert regions.region_name("co_canada", country_names) == ("Rest of Canada", "country")
+    assert regions.region_name("co_chinese_taipei", country_names) == ("Taiwan", "country")

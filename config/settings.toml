@@ -29,7 +29,10 @@ wma_weights = [4, 3, 2, 1]
 
 [regions]
 sc_pch_years = [2023, 2024]  # South Carolina competed in pch these seasons
-sc_fsc_from = 2025           # ...in fsc from this season onward
+# South Carolina's own district (called "fsc"/FIRST South Carolina externally)
+# began this season; both eras of SC's own-region years merge into "st_sc"
+# since they never overlap with sc_pch_years (see regions.sc_region_for_year).
+sc_fsc_from = 2025
 pa_active_cutoff = 2012      # PA teams active in/after this year use given district
 
 [metrics]
