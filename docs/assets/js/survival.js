@@ -100,16 +100,25 @@ export function renderSurvival(el, legendEl, manifest, region, scope) {
   g.append("text").attr("class", "axis-title").attr("text-anchor", "middle")
     .attr("transform", `translate(${-36},${iH / 2}) rotate(-90)`).text("survival ratio (region ÷ world)");
 
+  // Hover.
+  const hover = g.append("g").style("display", "none");
+  const hLine = hover.append("line").attr("class", "hover-line").attr("y1", 0).attr("y2", iH);
+  const hDot = hover.append("circle").attr("class", "hover-dot").attr("r", 3.5);
+
   const bisect = d3.bisector((p) => p.x).center;
   g.append("rect").attr("width", iW).attr("height", iH).attr("fill", "none").style("pointer-events", "all")
-    .on("mouseleave", () => { tip.style.opacity = 0; })
+    .on("mouseenter", () => hover.style("display", null))
+    .on("mouseleave", () => { hover.style("display", "none"); tip.style.opacity = 0; })
     .on("mousemove", function (event) {
       const mx = d3.pointer(event, this)[0];
       const p = pts[bisect(pts, x.invert(mx))];
+      const px = x(p.x);
+      hLine.attr("x1", px).attr("x2", px);
+      hDot.attr("cx", px).attr("cy", y(p.R));
       tip.innerHTML = `<div class="tt-p">${Math.round(p.x)} EPA</div>` +
         `<div class="tt-row">R = <span class="${p.R >= 1 ? "tt-hard" : "tt-easy"}">${p.R.toFixed(2)}×</span> vs world</div>`;
       tip.style.opacity = 1;
-      tip.style.left = `${Math.min(m.left + x(p.x) + 12, width - 160)}px`;
+      tip.style.left = `${Math.min(m.left + px + 12, width - 160)}px`;
       tip.style.top = `${m.top + y(p.R) - 8}px`;
     });
 
