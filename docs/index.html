@@ -45,10 +45,10 @@
 
     <p id="app-status" class="app-status" role="status"></p>
 
-    <section class="survival card" aria-label="Right tail survival ratio">
+    <section class="survival card" aria-label="Depth ratio (survival ratio)">
       <div class="section-head hero-head">
         <div>
-          <h2>Right tail depth</h2>
+          <h2>Depth ratio</h2>
           <p class="section-sub" id="survival-sub"></p>
         </div>
         <div class="stat-chips" id="survival-chips"></div>
@@ -121,7 +121,7 @@
         <h3>Baseline &amp; uncertainty</h3>
         <p>The worldwide baseline is the distribution of <em>all</em> teams for that season (or pooled across all seasons), including the region itself. The shaded band is a <strong>95% bootstrap</strong> confidence interval (the region resampled against a fixed world). Small regions are noisy: those with fewer than five teams show no band, and <code>n</code> is shown everywhere &mdash; read small samples with the band and count in mind.</p>
 
-        <h3>Right tail depth &amp; average difficulty</h3>
+        <h3>Depth ratio &amp; average difficulty</h3>
         <p><code>R(x) = (1 &minus; F_region(x)) / (1 &minus; F_global(x))</code> compares a region&rsquo;s share of teams above each skill level to the world&rsquo;s, on a log axis over the global 1st&ndash;99th percentile (the 100th is skipped to avoid dividing by zero). Above 1 = deeper than average at that level. The plain mean of <code>R</code> across that same range is each region&rsquo;s single <strong>average difficulty</strong> number &mdash; the most meaningful one-number summary, and what sorts the All Regions heatmap and small multiples below.</p>
 
         <h3>Data</h3>

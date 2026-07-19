@@ -1,4 +1,4 @@
-// Right-tail depth: survival ratio R(x) = (1 - F_region) / (1 - F_global),
+// Depth ratio: survival ratio R(x) = (1 - F_region) / (1 - F_global),
 // reconstructed client-side from the quantile knots and sampled uniformly in
 // EPA (so the sparse upper tail stays smooth), on a log y-axis. Diverging
 // red/blue shading around R = 1, faint global-percentile gridlines to orient
@@ -20,7 +20,7 @@ export function renderSurvival(el, legendEl, manifest, region, scope) {
     : { x: [], R: [] };
   const pts = curve.x.map((x, i) => ({ x, R: curve.R[i] })).filter((p) => p.R != null && p.R > 0);
   if (pts.length < 3) {
-    el.innerHTML = `<div class="empty-state small">Not enough right-tail depth to estimate a survival ratio for ${region.name} here.</div>`;
+    el.innerHTML = `<div class="empty-state small">Not enough depth to estimate a survival ratio for ${region.name} here.</div>`;
     return;
   }
   const tip = document.createElement("div");
@@ -43,7 +43,7 @@ export function renderSurvival(el, legendEl, manifest, region, scope) {
   const svg = d3.select(el).append("svg")
     .attr("viewBox", `0 0 ${width} ${height}`)
     .attr("role", "img")
-    .attr("aria-label", `Right-tail depth (survival ratio) for ${region.name}`);
+    .attr("aria-label", `Depth ratio for ${region.name}`);
   const g = svg.append("g").attr("transform", `translate(${m.left},${m.top})`);
 
   g.append("g").attr("class", "grid").selectAll("line")
