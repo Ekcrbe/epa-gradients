@@ -48,6 +48,24 @@ def primary_crossing(crossings: list[dict]) -> float | None:
     return crossings[0]["p"] if crossings else None
 
 
+def _survival_p_range(global_sorted, settings) -> tuple[float, float]:
+    """The [p_start, p_cap] global-percentile window the survival ratio sweeps."""
+    m = settings["metrics"]
+    n_glob = len(global_sorted)
+    p_cap = min(1.0 - max(m["survival_min_global_frac"], m["survival_min_global_teams"] / n_glob),
+                m["survival_p_end_cap"])
+    return m["survival_p_start"], p_cap
+
+
+def _survival_R(region_sorted, global_sorted, p_tail) -> np.ndarray:
+    """R(x) = (1 - F_region(x)) / (1 - F_global(x)) at the given percentile grid."""
+    x = np.quantile(global_sorted, p_tail)
+    sg = 1.0 - _ecdf_right(global_sorted, x)
+    sr = 1.0 - _ecdf_right(region_sorted, x)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        return np.where(sg > 0, sr / sg, np.nan)
+
+
 def survival_tail(region_sorted, global_sorted, settings) -> dict:
     """R(x) = (1 - F_region(x)) / (1 - F_global(x)) over most of the distribution.
 
@@ -57,21 +75,21 @@ def survival_tail(region_sorted, global_sorted, settings) -> dict:
     mean_R -- the plain mean of R over that same grid -- is the region's
     headline "average difficulty" summary stat (also used to sort All Regions).
     """
-    m = settings["metrics"]
-    n_glob = len(global_sorted)
-    p_cap = min(1.0 - max(m["survival_min_global_frac"], m["survival_min_global_teams"] / n_glob),
-                m["survival_p_end_cap"])
-    p_start = m["survival_p_start"]
+    p_start, p_cap = _survival_p_range(global_sorted, settings)
     if p_cap <= p_start:
         return {"x": [], "R": [], "p": [], "mean_R": None}
-    p_tail = np.linspace(p_start, p_cap, m["survival_points"])
-    x = np.quantile(global_sorted, p_tail)
-    sg = 1.0 - _ecdf_right(global_sorted, x)
-    sr = 1.0 - _ecdf_right(region_sorted, x)
-    with np.errstate(divide="ignore", invalid="ignore"):
-        R = np.where(sg > 0, sr / sg, np.nan)
+    p_tail = np.linspace(p_start, p_cap, settings["metrics"]["survival_points"])
+    R = _survival_R(region_sorted, global_sorted, p_tail)
     mean_R = float(np.nanmean(R)) if np.any(~np.isnan(R)) else None
-    return {"x": x, "R": R, "p": p_tail, "mean_R": mean_R}
+    return {"x": np.quantile(global_sorted, p_tail), "R": R, "p": p_tail, "mean_R": mean_R}
+
+
+def survival_tail_coarse(region_sorted, global_sorted, settings, n_points) -> np.ndarray | None:
+    """A low-resolution R(x) sparkline for the small-multiples mini chart."""
+    p_start, p_cap = _survival_p_range(global_sorted, settings)
+    if p_cap <= p_start:
+        return None
+    return _survival_R(region_sorted, global_sorted, np.linspace(p_start, p_cap, n_points))
 
 
 def _gate_crossover(p_fine, d, settings):
@@ -113,6 +131,7 @@ def compute_region(region_vals, global_sorted, p_fine, p_coarse, p_band, setting
         "mean_D_local": float(d_local.mean()),
         "top_heaviness_local": float(d_local[top].mean()),
         "D_local_coarse": d_local_coarse,
+        "R_coarse": survival_tail_coarse(rs, global_sorted, settings, len(p_coarse)),
         "mean_R": survival_tail(rs, global_sorted, settings)["mean_R"],
     }
 

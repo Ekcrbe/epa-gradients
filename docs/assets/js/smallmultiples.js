@@ -1,19 +1,44 @@
-// Small-multiples grid: one mini D(p) panel per region, shared identical axes,
-// diverging fill around a zero line. Click a panel to focus it in the hero.
+// Small-multiples grid: one mini survival-ratio R(x) panel per region, sharing
+// a log y-domain and a diverging fill around R = 1. Click a panel to focus it
+// in the hero. Matches the fact that the headline chip and sort key are both
+// the mean survival ratio, not the displacement.
 
 const truncate = (s, n) => (s.length > n ? s.slice(0, n - 1) + "…" : s);
 
-function miniSvg(r, pc, M) {
-  const W = 176, H = 62, zeroY = H / 2;
+// A shared log-scale R domain across every visible card, so panels stay
+// visually comparable (mirrors survival.js's own per-region yMin/yMax logic).
+function rDomain(rows) {
+  let min = Infinity, max = -Infinity;
+  for (const r of rows) for (const v of r.R_coarse || []) {
+    if (v == null || v <= 0) continue;
+    if (v < min) min = v;
+    if (v > max) max = v;
+  }
+  if (!isFinite(min)) return [0.5, 2];
+  return [Math.min(0.5, min * 0.85), Math.max(2, max * 1.15)];
+}
+
+function miniSvg(r, nPts, yMin, yMax) {
+  const W = 176, H = 62;
+  const logMin = Math.log(yMin), logMax = Math.log(yMax);
   const y = (v) => {
-    const c = Math.max(-M, Math.min(M, v));
-    return ((M - c) / (2 * M)) * H;
+    const c = Math.max(yMin, Math.min(yMax, v));
+    return ((logMax - Math.log(c)) / (logMax - logMin)) * H;
   };
-  const px = (i) => (i / (pc.length - 1)) * W;
-  const pts = r.D_coarse.map((v, i) => `${px(i).toFixed(1)},${y(v).toFixed(1)}`);
-  const line = "M" + pts.join(" L ");
-  const area = `M0,${zeroY} L ${pts.join(" L ")} L ${W},${zeroY} Z`;
+  const zeroY = y(1);
+  const px = (i) => (i / (nPts - 1)) * W;
   const uid = r.id.replace(/[^a-z0-9]/gi, "");
+  const valid = (r.R_coarse || [])
+    .map((v, i) => ({ i, v }))
+    .filter((d) => d.v != null && d.v > 0);
+  if (valid.length < 2) {
+    return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" class="sm-svg" aria-hidden="true">
+      <line x1="0" y1="${zeroY}" x2="${W}" y2="${zeroY}" class="zero-line"/>
+    </svg>`;
+  }
+  const pts = valid.map((d) => `${px(d.i).toFixed(1)},${y(d.v).toFixed(1)}`);
+  const line = "M" + pts.join(" L ");
+  const area = `M${px(valid[0].i).toFixed(1)},${zeroY} L ${pts.join(" L ")} L ${px(valid[valid.length - 1].i).toFixed(1)},${zeroY} Z`;
   return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" class="sm-svg" aria-hidden="true">
     <defs>
       <clipPath id="u${uid}"><rect x="0" y="0" width="${W}" height="${zeroY}"/></clipPath>
@@ -26,15 +51,13 @@ function miniSvg(r, pc, M) {
   </svg>`;
 }
 
-export function renderSmallMultiples(el, { manifest, rows, M, selectedId, onSelect }) {
+export function renderSmallMultiples(el, { manifest, rows, selectedId, onSelect }) {
   el.innerHTML = "";
   if (!rows.length) { el.innerHTML = `<div class="empty-state small">No regions meet the current filter.</div>`; return; }
-  const pc = manifest.grid.p_coarse;
+  const nPts = manifest.grid.p_coarse.length;
+  const [yMin, yMax] = rDomain(rows);
   const frag = document.createDocumentFragment();
   for (const r of rows) {
-    // Headline metric = mean survival ratio (the All Regions sort key), so the
-    // number shown matches the ordering. The mini-curve still shows the D_local
-    // profile (where within the region it is harder / easier).
     const sr = r.mean_survival_R;
     const cls = sr != null && sr >= 1 ? "hard" : "easy";
     const label = sr != null ? `${sr.toFixed(2)}×` : "—";
@@ -46,7 +69,7 @@ export function renderSmallMultiples(el, { manifest, rows, M, selectedId, onSele
     card.innerHTML =
       `<div class="sm-head"><span class="sm-name">${truncate(r.name, 18)}</span>` +
       `<span class="sm-meta"><span class="${cls}">${label}</span> · n${r.n}</span></div>` +
-      miniSvg(r, pc, M);
+      miniSvg(r, nPts, yMin, yMax);
     frag.appendChild(card);
   }
   el.appendChild(frag);

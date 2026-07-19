@@ -103,6 +103,7 @@ def run(out: dict, settings: dict) -> None:
                 "crossover": _r(res["crossover_local"], 4),
                 "top_heaviness": _r(res["top_heaviness_local"], 4),
                 "D_coarse": _rlist(res["D_local_coarse"], 4),
+                "R_coarse": _rlist(res["R_coarse"], 3),
                 "mean_survival_R": _r(res["mean_R"], 4),
             }
 
