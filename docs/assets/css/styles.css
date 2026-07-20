@@ -95,6 +95,18 @@ input[type="range"] { flex: 1; min-width: 140px; }
 .avg-line { stroke: var(--refline); stroke-width: 1.5; stroke-dasharray: 4 3; }
 .avg-label { fill: var(--refline); font-size: 11px; font-weight: 600; }
 
+/* Strength-over-time: two solid-dot series on a shared, zero-aligned axis. */
+.strength-line { fill: none; stroke-width: 1.8; stroke-linejoin: round; }
+.strength-line.strength-d { stroke: var(--accent); }
+.strength-line.strength-r { stroke: var(--refline); }
+.strength-dot { stroke: var(--panel); stroke-width: 1; }
+.strength-d-dot { fill: var(--accent); }
+.strength-r-dot { fill: var(--refline); }
+.axis-d text { fill: var(--accent); }
+.axis-r text { fill: var(--refline); }
+.axis-title-d { fill: var(--accent); }
+.axis-title-r { fill: var(--refline); }
+
 /* Tooltip */
 .tooltip {
   position: absolute; pointer-events: none; z-index: 5; opacity: 0;

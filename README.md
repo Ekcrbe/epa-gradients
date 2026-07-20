@@ -63,12 +63,19 @@ and the site can be iterated without re-hitting any API.
   shared axes. Sort by average difficulty, crossover, top-heaviness, or team
   count; filter by minimum `n`; click any row or panel to focus it in the hero.
 - **Elite-tail survival ratio** — `R(x)` on a log axis for the selected region.
+- **Strength over time** — a per-season time series for the selected region:
+  average `D` (left axis) and average `R` (right axis) as solid dots joined by
+  straight segments, with `D = 0` and `R = 1` sharing the zero line. Spans the
+  full postseason range regardless of the season slider; the single-year EPA
+  toggle still switches the strength model. The canceled 2020–21 seasons are
+  bridged (2019 joins straight to 2022); any other season the region fielded no
+  teams breaks the line.
 - **Methodology** — an in-page explainer of the metric, strength model, region
   rules, and uncertainty.
 
 Frontend modules live in `docs/assets/js/` (`app.js`, `data.js`, `hero.js`,
-`heatmap.js`, `smallmultiples.js`, `survival.js`, `theme.js`); D3 is vendored at
-`docs/assets/vendor/d3.v7.min.js`.
+`heatmap.js`, `smallmultiples.js`, `survival.js`, `strength.js`, `theme.js`);
+D3 is vendored at `docs/assets/vendor/d3.v7.min.js`.
 
 ## Data sources
 
