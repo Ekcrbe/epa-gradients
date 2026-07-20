@@ -28,6 +28,10 @@ skip_years = [2020, 2021]    # canceled: no snapshot, and dropped from every win
 wma_weights = [4, 3, 2, 1]
 
 [regions]
+# California is split into "ca_north" / "ca_south" by team latitude (from The
+# Blue Alliance's /team/{key} endpoint; see pipeline/tba.py). Teams at or north
+# of this line are Northern California, the rest Southern California.
+ca_split_lat = 35.789
 sc_pch_years = [2023, 2024]  # South Carolina competed in pch these seasons
 # South Carolina's own district (called "fsc"/FIRST South Carolina externally)
 # began this season; both eras of SC's own-region years merge into "st_sc"

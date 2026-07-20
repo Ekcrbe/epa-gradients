@@ -45,6 +45,28 @@ def test_region_for_year_applies_sc_dynamic():
     assert r2026[10] == "fim" and r2026[20] == "st_sc"  # merged, not "fsc"
 
 
+def test_split_california_by_latitude():
+    base = {1: "ca", 2: "ca", 3: "ca", 4: "ca", 5: "fim"}
+    locations = {
+        1: {"lat": 37.7749, "lng": -122.4194},  # SF, north
+        2: {"lat": 34.0522, "lng": -118.2437},  # LA, south
+        3: {"lat": 35.789, "lng": -119.0},      # exactly on the line -> north
+        4: {"lat": None, "lng": None},          # no TBA coordinates
+    }
+    unresolved = regions._split_california(base, [1, 2, 3, 4], locations, 35.789)
+    assert base[1] == "ca_north"
+    assert base[2] == "ca_south"
+    assert base[3] == "ca_north"
+    assert base[4] is None
+    assert base[5] == "fim"  # untouched
+    assert unresolved == [4]
+
+
+def test_region_naming_ca_split():
+    assert regions.region_name("ca_north") == ("Northern California", "district")
+    assert regions.region_name("ca_south") == ("Southern California", "district")
+
+
 def test_region_naming():
     assert regions.region_name("fim") == ("FIRST in Michigan", "district")
     assert regions.region_name("st_fl") == ("Florida", "state")

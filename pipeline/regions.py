@@ -5,6 +5,11 @@ Rules (see README / plan):
     (country, state) -> district map, then applied to all seasons by a team's
     canonical (most-recent) state. This absorbs district code changes
     (e.g. chs -> fch) and stray null-district noise (e.g. a few NH teams).
+  * CA is split into two regions by latitude: teams whose The Blue Alliance
+    location is at or north of settings.regions.ca_split_lat (35.789 deg N)
+    are "ca_north" (Northern California), the rest "ca_south" (Southern
+    California). Teams TBA has no coordinates for are excluded and listed in
+    data/review/ca_unmapped_teams.csv (see tba.py for the fetch/cache).
   * SC is time-dependent: own state region ("South Carolina") <=2022 and again
     from 2025 (the present-day FIRST South Carolina district years), merged into
     one "st_sc" region since they never overlap in time; pch (Peachtree) in
@@ -21,6 +26,7 @@ Outputs:
   data/interim/region_meta.json        region_id -> {name, type}
   data/review/state_district_map.json  human-review of the derived mapping
   data/review/pa_defunct_teams.csv     defunct pre-2012 PA teams to sort by hand
+  data/review/ca_unmapped_teams.csv    CA teams TBA has no lat/lng for
 """
 from __future__ import annotations
 
@@ -33,7 +39,8 @@ import pandas as pd
 from . import config
 
 DISTRICT_NAMES = {
-    "ca": "California",
+    "ca_north": "Northern California",
+    "ca_south": "Southern California",
     "fch": "FIRST Chesapeake",
     "fim": "FIRST in Michigan",
     "fin": "FIRST Indiana",
@@ -130,6 +137,26 @@ def region_name(region_id: str, country_names: dict[str, str] | None = None) -> 
     return region_id, "unknown"
 
 
+def _split_california(
+    base: dict[int, str | None], ca_teams: list[int], locations: dict[int, dict], split_lat: float
+) -> list[int]:
+    """Reassign "ca" teams in-place to "ca_north" / "ca_south" by TBA latitude.
+
+    Teams at or north of split_lat are ca_north, the rest ca_south. Teams TBA
+    has no coordinates for are left unmapped (base=None) and returned so the
+    caller can list them for review.
+    """
+    unresolved: list[int] = []
+    for team in ca_teams:
+        lat = (locations.get(team) or {}).get("lat")
+        if lat is None:
+            base[team] = None
+            unresolved.append(team)
+        else:
+            base[team] = "ca_north" if lat >= split_lat else "ca_south"
+    return unresolved
+
+
 def _load_pa_overrides() -> dict[int, str]:
     path = config.ROOT / "config" / "pa_overrides.csv"
     if not path.exists():
@@ -200,6 +227,15 @@ def classify(df: pd.DataFrame, settings: dict) -> tuple[pd.DataFrame, dict]:
             base[team] = None
             unmapped.append({"team": team, "country": country, "state": state})
 
+    ca_teams = [team for team, rid in base.items() if rid == "ca"]
+    ca_unmapped: list[dict] = []
+    if ca_teams:
+        from . import tba
+        locations = tba.fetch_team_locations(ca_teams)
+        split_lat = settings["regions"]["ca_split_lat"]
+        for team in _split_california(base, ca_teams, locations, split_lat):
+            ca_unmapped.append({"team": team, "name": teams.loc[team, "name"] if team in teams.index else None})
+
     out = teams.reset_index()[["team", "name", "country", "state", "last_year", "first_year", "seasons"]].copy()
     out["base_region"] = out["team"].map(base).astype("string")
     out["is_sc"] = out["team"].map(is_sc)
@@ -214,18 +250,18 @@ def classify(df: pd.DataFrame, settings: dict) -> tuple[pd.DataFrame, dict]:
         json.dumps(meta, indent=2, ensure_ascii=False), encoding="utf-8"
     )
 
-    _emit_review(df, dmap, out, pa_defunct, unmapped, settings)
+    _emit_review(df, dmap, out, pa_defunct, unmapped, ca_unmapped, settings)
 
     print(
         f"  regions: {len(meta)} region ids; "
         f"{out['base_region'].notna().sum():,}/{len(out):,} teams mapped, "
         f"{int(out['is_sc'].sum())} SC (dynamic), {len(pa_defunct)} PA-defunct to review, "
-        f"{len(unmapped)} unmapped"
+        f"{len(ca_unmapped)} CA teams with no TBA location, {len(unmapped)} unmapped"
     )
     return out, meta
 
 
-def _emit_review(df, dmap, team_region, pa_defunct, unmapped, settings) -> None:
+def _emit_review(df, dmap, team_region, pa_defunct, unmapped, ca_unmapped, settings) -> None:
     config.REVIEW.mkdir(parents=True, exist_ok=True)
     usa = df[df["year"] == 2026]
     usa = usa[usa["country"] == "USA"]
@@ -243,10 +279,14 @@ def _emit_review(df, dmap, team_region, pa_defunct, unmapped, settings) -> None:
                    ">=2025": "st_sc again (present-day FIRST South Carolina district, merged)"},
             "PA": {"active>=2012": "present-day district as given (fma, else st_pa / Rest of Pennsylvania)",
                    "defunct<2012": "manual via config/pa_overrides.csv (see pa_defunct_teams.csv)"},
+            "CA": {"split": "ca_north / ca_south by The Blue Alliance team latitude, "
+                             f"threshold {settings['regions']['ca_split_lat']} deg N",
+                   "no_location": "excluded, listed in ca_unmapped_teams.csv"},
             "notes": "A few NH teams have null district in 2026; the modal rule assigns all NH -> ne.",
         },
         "pa_defunct_count": len(pa_defunct),
         "unmapped_count": len(unmapped),
+        "ca_unmapped_count": len(ca_unmapped),
     }
     (config.REVIEW / "state_district_map.json").write_text(
         json.dumps(review, indent=2, ensure_ascii=False), encoding="utf-8"
@@ -255,6 +295,11 @@ def _emit_review(df, dmap, team_region, pa_defunct, unmapped, settings) -> None:
     pa_df = pd.DataFrame(pa_defunct, columns=["team", "name", "first_year", "last_year", "seasons", "last_known_district"])
     pa_df = pa_df.sort_values("team") if len(pa_df) else pa_df
     pa_df.to_csv(config.REVIEW / "pa_defunct_teams.csv", index=False)
+
+    if ca_unmapped:
+        pd.DataFrame(ca_unmapped, columns=["team", "name"]).sort_values("team").to_csv(
+            config.REVIEW / "ca_unmapped_teams.csv", index=False
+        )
     if unmapped:
         pd.DataFrame(unmapped).to_csv(config.REVIEW / "unmapped_teams.csv", index=False)
 

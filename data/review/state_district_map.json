@@ -67,8 +67,13 @@
       "active>=2012": "present-day district as given (fma, else st_pa / Rest of Pennsylvania)",
       "defunct<2012": "manual via config/pa_overrides.csv (see pa_defunct_teams.csv)"
     },
+    "CA": {
+      "split": "ca_north / ca_south by The Blue Alliance team latitude, threshold 35.789 deg N",
+      "no_location": "excluded, listed in ca_unmapped_teams.csv"
+    },
     "notes": "A few NH teams have null district in 2026; the modal rule assigns all NH -> ne."
   },
   "pa_defunct_count": 0,
-  "unmapped_count": 2
+  "unmapped_count": 2,
+  "ca_unmapped_count": 75
 }
