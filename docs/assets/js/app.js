@@ -4,6 +4,7 @@ import { renderHero } from "./hero.js";
 import { renderHeatmap } from "./heatmap.js";
 import { renderSmallMultiples } from "./smallmultiples.js";
 import { renderSurvival } from "./survival.js";
+import { renderStrength } from "./strength.js";
 import { renderComparison } from "./comparison.js";
 import { localDisplacementCurve } from "./curves.js";
 import { divergingColor } from "./theme.js";
@@ -41,6 +42,9 @@ const els = {
   survivalChips: document.getElementById("survival-chips"),
   survivalChart: document.getElementById("survival-chart"),
   survivalLegend: document.getElementById("survival-legend"),
+  strengthSub: document.getElementById("strength-sub"),
+  strengthChart: document.getElementById("strength-chart"),
+  strengthLegend: document.getElementById("strength-legend"),
   cmpRegion1: document.getElementById("cmp-region1"),
   cmpRegion2: document.getElementById("cmp-region2"),
   cmpChart: document.getElementById("cmp-chart"),
@@ -191,6 +195,13 @@ function renderSelected() {
   els.scopeCaption.textContent = state.pooled ? "(all-time)" : "(postseason)";
   els.title.textContent = `${region.name} vs. the world`;
   els.survivalSub.textContent = `${region.name} · ${state.pooled ? "pooled" : state.year}`;
+
+  // Strength-over-time spans every postseason regardless of the selected
+  // season, so it renders before the (season-specific) empty-state return.
+  // It follows the single-year EPA toggle (wma <-> single) like everything else.
+  const strengthMode = state.pooled || state.single ? "single" : "wma";
+  els.strengthSub.textContent = `${region.name} · all postseasons · ${strengthMode === "single" ? "single-year EPA" : "4-year WMA"}`;
+  renderStrength(els.strengthChart, els.strengthLegend, manifest, region, strengthMode);
 
   if (!sc) {
     const rc = manifest.regions_config || {};
