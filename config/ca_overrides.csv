@@ -1,0 +1,8 @@
+# Manual region for California teams the automated lookup (pipeline/tba.py +
+# pipeline/geocode.py: TBA postal_code -> ZIP centroid, falling back to city
+# name -> California place centroid) couldn't resolve. Applied only to teams
+# still listed in data/review/ca_unmapped_teams.csv after a rebuild -- check
+# that file for the team's name/city, look up its town, and add a row here:
+# region must be "ca_north" or "ca_south" (split at 35.789 deg N). city
+# column is for traceability only and isn't read by the pipeline.
+team,region,city

@@ -68,12 +68,14 @@
       "defunct<2012": "manual via config/pa_overrides.csv (see pa_defunct_teams.csv)"
     },
     "CA": {
-      "split": "ca_north / ca_south by The Blue Alliance team latitude, threshold 35.789 deg N",
-      "no_location": "excluded, listed in ca_unmapped_teams.csv"
+      "split": "ca_north / ca_south by team location (TBA postal_code -> ZIP centroid, falling back to city -> CA place centroid), threshold 35.789 deg N",
+      "no_location": "excluded, listed in ca_unmapped_teams.csv",
+      "manual_override": "config/ca_overrides.csv always wins, for unresolved teams or to correct a boundary case",
+      "audit": "every CA team's resolved location + assigned region is in ca_team_locations.csv for review"
     },
     "notes": "A few NH teams have null district in 2026; the modal rule assigns all NH -> ne."
   },
   "pa_defunct_count": 0,
   "unmapped_count": 2,
-  "ca_unmapped_count": 75
+  "ca_unmapped_count": 0
 }

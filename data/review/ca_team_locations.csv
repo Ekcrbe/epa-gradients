@@ -1,0 +1,562 @@
+team,region,city,postal_code,lat,lng,overridden
+4,ca_south,Van Nuys,91406,34.197454,-118.488978,False
+8,ca_north,Palo Alto,94301,37.444218,-122.149855,False
+22,ca_south,Chatsworth,91311,34.292495,-118.602424,False
+100,ca_north,Woodside,94062,37.422531,-122.28582,False
+114,ca_north,Los Altos,94022,37.35536,-122.144935,False
+115,ca_north,Cupertino,95014,37.308354,-122.081882,False
+192,ca_north,Palo Alto,94306,37.4162,-122.130858,False
+199,ca_north,Belmont,94002,37.513447,-122.296824,False
+207,ca_south,Hawthorne,90250,33.913651,-118.350946,False
+253,ca_north,Millbrae,94030,37.59971,-122.4033,False
+254,ca_north,San Jose,95126,37.326922,-121.916779,False
+256,ca_north,San Jose,95125,37.295599,-121.894071,False
+294,ca_south,Redondo Beach,90277,33.830006,-118.387124,False
+295,ca_north,Granite Bay,95746,38.746924,-121.166434,False
+299,ca_north,Cupertino,95014,37.308354,-122.081882,False
+330,ca_south,Hermosa Beach,90254,33.864259,-118.399303,False
+362,ca_south,Los Angeles,90049,34.09254,-118.491064,False
+399,ca_south,Lancaster,93536,34.73767,-118.387424,False
+481,ca_north,San Pablo,94806,37.978427,-122.336418,False
+580,ca_south,Studio City,91604,34.140187,-118.394603,False
+581,ca_north,San Jose,95116,37.350471,-121.852554,False
+585,ca_south,Tehachapi,93561,35.098666,-118.516706,False
+589,ca_south,La Crescenta,91214,34.235728,-118.246655,False
+597,ca_south,Los Angeles,90018,34.028632,-118.317347,False
+599,ca_south,Granada Hills,91344,34.289467,-118.504699,False
+604,ca_north,San Jose,95120,37.185746,-121.842738,False
+606,ca_south,Los Angeles,90059,33.927469,-118.248796,False
+634,ca_south,Van Nuys,91411,34.178517,-118.45963,False
+649,ca_north,Saratoga,95070,37.254929,-122.052181,False
+668,ca_north,San Jose,95118,37.255364,-121.891912,False
+670,ca_north,Cupertino,95014,37.308354,-122.081882,False
+675,ca_north,Rohnert Park,94928,38.34593,-122.693507,False
+687,ca_south,Carson,90747,33.863785,-118.251354,False
+691,ca_south,Stevenson Ranch,91381,34.373221,-118.607971,False
+692,ca_north,Sacramento,95819,38.566862,-121.437563,False
+696,ca_south,La Crescenta,91214,34.235728,-118.246655,False
+701,ca_north,Fairfield,94533,38.280745,-122.00638,False
+702,ca_south,Culver City,90230,33.997862,-118.393617,False
+751,ca_north,Portola Valley,94028,37.374883,-122.212675,False
+766,ca_north,Atherton,94027,37.457072,-122.201058,False
+812,ca_south,La Jolla,92093,32.882118,-117.237083,False
+814,ca_north,Napa,94559,38.251125,-122.296089,False
+840,ca_north,San Mateo,94402,37.540103,-122.330103,False
+841,ca_north,Richmond,94804,37.915463,-122.337815,False
+846,ca_north,San Jose,95129,37.305958,-122.00072,False
+848,ca_south,San Pedro,90732,33.737321,-118.313433,False
+852,ca_north,Danville,94506,37.806426,-121.902424,False
+867,ca_south,Arcadia,91007,34.128284,-118.047732,False
+968,ca_south,West Covina,91791,34.061624,-117.892235,False
+971,ca_north,Mountain View,94040,37.380272,-122.085221,False
+972,ca_north,Los Gatos,95030,37.221646,-121.983242,False
+973,ca_south,Atascadero,93422,35.465349,-120.689439,False
+974,ca_south,Los Angeles,90077,34.108023,-118.456964,False
+980,ca_south,Burbank,91342,34.326584,-118.382261,False
+981,ca_south,Lebec,93243,34.839984,-118.814946,False
+995,ca_south,Alhambra,91803,34.074736,-118.145959,False
+1031,ca_north,San Francisco,94110,37.750021,-122.415201,False
+1047,ca_south,Irvine,92604,33.690689,-117.789137,False
+1070,ca_south,Woodland Hills,91364,34.154803,-118.594816,False
+1072,ca_north,San Jose,95129,37.305958,-122.00072,False
+1079,ca_south,Temecula,92591,33.534332,-117.109211,False
+1097,ca_north,Carmichael,95608,38.626935,-121.331191,False
+1110,ca_south,Palmdale,93551,34.589618,-118.227381,False
+1120,ca_north,Milpitas,95035,37.440397,-121.874693,False
+1135,ca_south,Cerritos,90703,33.867745,-118.069471,False
+1138,ca_south,Canoga Park,91304,34.227791,-118.644607,False
+1147,ca_north,Elk Grove,95624,38.43415,-121.305874,False
+1148,ca_south,Studio City,91604,34.140187,-118.394603,False
+1159,ca_south,Alhambra,91803,34.074736,-118.145959,False
+1160,ca_south,San Marino,91108,34.122372,-118.114234,False
+1197,ca_south,Torrance,90505,33.807882,-118.347957,False
+1266,ca_south,San Diego,92124,32.828255,-117.085262,False
+1280,ca_north,Danville,94526,37.814734,-121.984525,False
+1323,ca_north,Madera,93637,36.918079,-120.185933,False
+1351,ca_north,San Jose,95129,37.305958,-122.00072,False
+1372,ca_south,San Diego,92126,32.91199,-117.143421,False
+1388,ca_south,Arroyo Grande,93420,35.176011,-120.476757,False
+1422,ca_north,Fresno,93720,36.862209,-119.760793,False
+1438,ca_south,Anaheim,92805,33.830053,-117.905683,False
+1452,ca_south,Los Angeles,90066,34.002028,-118.430656,False
+1458,ca_north,Danville,94526,37.814734,-121.984525,False
+1515,ca_south,Beverly Hills,90212,34.06216,-118.401882,False
+1516,ca_north,San Ramon,94583,37.771693,-121.989829,False
+1527,ca_south,El Cajon,92019,32.778844,-116.871416,False
+1538,ca_south,San Diego,92106,32.709885,-117.237857,False
+1556,ca_south,North Hills,91343,34.238802,-118.482296,False
+1560,ca_north,Los Altos Hills,94022,37.35536,-122.144935,False
+1572,ca_south,San Diego,92111,32.806482,-117.168966,False
+1613,ca_south,San Diego,92108,32.773983,-117.142706,False
+1622,ca_south,Poway,92064,32.984352,-117.013537,False
+1641,ca_south,Mojave,93501,35.065798,-118.221782,False
+1644,ca_south,Los Angeles,90044,33.952653,-118.292013,False
+1661,ca_south,Sherman Oaks,91423,34.149493,-118.431882,False
+1662,ca_north,Lodi,95242,38.137068,-121.384546,False
+1669,ca_south,Long Beach,90810,33.819841,-118.222378,False
+1671,ca_north,Clovis,93619,36.914176,-119.593979,False
+1678,ca_north,Davis,95616,38.554147,-121.798514,False
+1682,ca_south,Riverside,92505,33.926666,-117.492804,False
+1692,ca_south,Los Angeles,90043,33.988505,-118.336358,False
+1693,ca_north,San Jose,95126,37.326922,-121.916779,False
+1700,ca_north,Palo Alto,94301,37.444218,-122.149855,False
+1702,ca_south,Ingelwood,90301,33.956464,-118.358681,False
+1704,ca_south,Fontana,92335,34.087333,-117.465158,False
+1717,ca_south,Goleta,93117,34.479453,-120.084094,False
+1722,ca_south,La Canada,91011,34.217935,-118.202255,False
+1759,ca_south,El Segundo,90245,33.917145,-118.401554,False
+1834,ca_north,San Jose,95127,37.371671,-121.787097,False
+1836,ca_south,Los Angeles,90049,34.09254,-118.491064,False
+1851,ca_south,Sun Valley,913352,34.200175,-118.540958,False
+1854,ca_north,Palo Alto,,37.39652,-122.143088,False
+1855,ca_south,Reseda,91335,34.200175,-118.540958,False
+1857,ca_north,Davis,,38.556147,-121.737793,False
+1868,ca_north,Mountain View,94035,37.399686,-122.079269,False
+1925,ca_south,West Hills,91304,34.227791,-118.644607,False
+1967,ca_north,San Jose,95112,37.344599,-121.88344,False
+1970,ca_north,Menlo Park,94025,37.451252,-122.182343,False
+1972,ca_south,El Centro,92243,32.770197,-115.59859,False
+1974,ca_north,Stockton,95203,37.954302,-121.32932,False
+2019,ca_south,El Cajon,92020-1187,32.795605,-116.969754,False
+2025,ca_south,Barstow,92311,34.965648,-117.001509,False
+2029,ca_south,Ramona,92065,33.040373,-116.830075,False
+2032,ca_south,San Diego,92101,32.717807,-117.172086,False
+2035,ca_north,Carmel,93922,36.552881,-121.921919,False
+2042,ca_south,Santa Clarita,91355,34.40185,-118.570014,False
+2063,ca_north,Turlock,95382,37.527558,-120.851106,False
+2066,ca_south,El Centro,92243,32.770197,-115.59859,False
+2073,ca_north,Elk Grove,95624,38.43415,-121.305874,False
+2085,ca_north,Vacaville,95688,38.421343,-122.030124,False
+2102,ca_south,Encinitas,92024,33.056868,-117.257577,False
+2135,ca_north,San Jose,95125,37.295599,-121.894071,False
+2141,ca_north,Concord,94518,37.950521,-122.022078,False
+2144,ca_north,Atherton,94027,37.457072,-122.201058,False
+2150,ca_south,Palos Verdes Peninsula,90274,33.7801,-118.372412,False
+2154,ca_south,Calexico,92231,32.687636,-115.564373,False
+2156,ca_north,Sacramento,95820,38.53491,-121.444202,False
+2159,ca_north,San Leandro,94577,37.716659,-122.169274,False
+2174,ca_south,Watts,90059,33.927469,-118.248796,False
+2178,ca_south,Oxnard,93036,34.248141,-119.153454,False
+2189,ca_north,Woodland,95695,38.694038,-121.852932,False
+2193,ca_south,Chula Vista,91910,32.637096,-117.061758,False
+2204,ca_north,Hayward,94545,37.629761,-122.124238,False
+2235,ca_south,Poway,92064-3299,32.984352,-117.013537,False
+2272,ca_south,Thousand Oaks,91360,34.213305,-118.874135,False
+2288,ca_north,Vacaville,,38.358621,-121.968601,False
+2339,ca_south,Lancaster,93535,34.698392,-117.889945,False
+2367,ca_north,Mountain View,94040,37.380272,-122.085221,False
+2390,ca_north,San Ramon,94582,37.765347,-121.915432,False
+2404,ca_south,Pasadena,91001,34.194489,-118.138263,False
+2419,ca_south,Brea,92821,33.931943,-117.854942,False
+2429,ca_south,La Canada Flintridge,91011,34.217935,-118.202255,False
+2446,ca_north,Pleasanton,94566,37.648731,-121.848024,False
+2456,ca_north,San Rafael,94901-3912,37.980709,-122.500606,False
+2473,ca_north,Cupertino,95014,37.308354,-122.081882,False
+2485,ca_south,San Diego,92111,32.806482,-117.168966,False
+2489,ca_north,San Jose,94539,37.516292,-121.911891,False
+2493,ca_south,Riverside,92504,33.908353,-117.401342,False
+2496,ca_south,Irvine,92602,33.736498,-117.734933,False
+2543,ca_south,Chula Vista,91915,32.623602,-116.949804,False
+2551,ca_north,Novato,94945,38.122687,-122.553142,False
+2584,ca_south,Calabasas,91302,34.122556,-118.669821,False
+2588,ca_south,Pomona,91766,34.042286,-117.756106,False
+2595,ca_south,Los Angeles,90037,34.00266,-118.287507,False
+2598,ca_north,Hercules,94618,37.844821,-122.238552,False
+2599,ca_south,CHULA VISTA,91911,32.607352,-117.05036,False
+2622,ca_south,San Diego,92117,32.824893,-117.199714,False
+2623,ca_north,Antioch,94531,37.956648,-121.77779,False
+2628,ca_north,San Francisco,94130-5027,37.819655,-122.36866,False
+2633,ca_north,Pittsburg,94510,38.113205,-122.119708,False
+2637,ca_south,Rolling Hills Estates,90274,33.7801,-118.372412,False
+2643,ca_north,San Jose,95123,37.244238,-121.831604,False
+2658,ca_south,San Diego,92128,32.996967,-117.072979,False
+2659,ca_south,Mission Hills,91345,34.265879,-118.456748,False
+2663,ca_south,El Cajon,92020,32.795605,-116.969754,False
+2710,ca_south,Palos Verdes Peninsula,90275,33.753134,-118.367973,False
+2761,ca_north,Fresno,93720,36.862209,-119.760793,False
+2813,ca_north,Saratoga,95070,37.254929,-122.052181,False
+2827,ca_south,Coronado,92118,32.698795,-117.20911,False
+2839,ca_south,Escondido,92027,33.131601,-116.976937,False
+2854,ca_north,San Jose,95148,37.333429,-121.781668,False
+2892,ca_north,Sacramento,95827,38.54836,-121.327497,False
+2919,ca_south,L.A.,90003,33.964077,-118.273684,False
+2984,ca_south,La Jolla,92037,32.854642,-117.251772,False
+3001,ca_south,Santa Fe Springs,90670,33.933565,-118.062611,False
+3013,ca_north,Vallejo ,94590,38.095789,-122.249689,False
+3020,ca_south,Rancho Santa Margarita,92688,33.61873,-117.6108,False
+3021,ca_south,Escondido,92025,33.077814,-117.033131,False
+3022,ca_north,San Jose,95132,37.418446,-121.787978,False
+3027,ca_south,Ventura,93003,34.283668,-119.223196,False
+3041,ca_south,Chula Vista,91911,32.607352,-117.05036,False
+3045,ca_north,San Mateo,94403,37.538449,-122.305447,False
+3120,ca_south,Sherman Oaks,91423,34.149493,-118.431882,False
+3128,ca_south,San Diego,92130,32.947616,-117.205825,False
+3129,ca_north,Mountain View,94041,37.388239,-122.075351,False
+3156,ca_north,Fremont,94536,37.570508,-121.98125,False
+3189,ca_north,Placerville,95667,38.733395,-120.791347,False
+3195,ca_south,La Mesa,91942,32.777267,-117.021344,False
+3226,ca_south,Chula Vista,91913,32.622895,-116.986892,False
+3250,ca_north,Sacramento,95831,38.495787,-121.530256,False
+3255,ca_south,Escondido,92025,33.077814,-117.033131,False
+3256,ca_north,San Jose,95111,37.283853,-121.826869,False
+3257,ca_north,Rocklin,95661,38.741274,-121.249266,False
+3271,ca_south,Ventura,93003,34.283668,-119.223196,False
+3295,ca_south,Mentone,92359,34.085289,-117.076311,False
+3296,ca_north,Fresno,93720,36.862209,-119.760793,False
+3303,ca_north,Fresno,93711,36.836551,-119.833849,False
+3309,ca_south,Anaheim,92801,33.844983,-117.952151,False
+3328,ca_south,North Hollywood,91601,34.168253,-118.372286,False
+3341,ca_south,San Diego,92129,32.963536,-117.126221,False
+3408,ca_south,Los Angeles,90006,34.048094,-118.294045,False
+3453,ca_south,Winchester,92596,33.668913,-117.047314,False
+3470,ca_south,Temecula,92590,33.48294,-117.226084,False
+3473,ca_south,Diamond Bar,91765,33.985166,-117.812005,False
+3476,ca_south,Irvine,92618,33.667307,-117.73358,False
+3477,ca_south,Chula Vista,91915,32.623602,-116.949804,False
+3482,ca_north,Campbell,95008,37.279173,-121.955565,False
+3486,ca_south,San Diego,92115,32.761549,-117.071905,False
+3491,ca_south,Holtville,92250,32.777373,-115.127981,False
+3495,ca_north,Fresno,93706,36.655905,-119.920259,False
+3500,ca_south,Perris,92571,33.842129,-117.194982,False
+3501,ca_north,Sunnyvale,94087,37.351615,-122.03668,False
+3503,ca_north,Fair Oaks,95628,38.652096,-121.254384,False
+3505,ca_north,Lincoln,95648,38.922812,-121.312005,False
+3512,ca_south,Orcutt,93455,34.848314,-120.482883,False
+3521,ca_south,Indio,92203,33.751601,-116.241426,False
+3554,ca_north,Elk Grove,95758,38.429667,-121.445213,False
+3569,ca_north,Fresno,93710,36.824105,-119.76271,False
+3598,ca_north,Sacramento,95831,38.495787,-121.530256,False
+3615,ca_north,Sacramento,95818,38.554487,-121.497058,False
+3647,ca_south,San Diego,92130,32.947616,-117.205825,False
+3669,ca_north,Ripon,95366,37.762766,-121.125277,False
+3677,ca_south,Pico Rivera,90660,33.989524,-118.089295,False
+3704,ca_south,National City,91950,32.669067,-117.093487,False
+3717,ca_north,San Pablo,94806,37.978427,-122.336418,False
+3749,ca_south,San Diego,92127,33.018765,-117.124098,False
+3752,ca_south,Los Angeles,90007,34.028165,-118.284829,False
+3759,ca_south,INGLEWOOD,90301,33.956464,-118.358681,False
+3849,ca_south,San Diego,92113,32.694637,-117.119756,False
+3851,ca_south,Canoga Park,91303-2399,34.19829,-118.602203,False
+3859,ca_north,Elk Grove,95757,38.331652,-121.436979,False
+3863,ca_south,Newbury Park,91320,34.173377,-118.947977,False
+3866,ca_north,McClellan,95652,38.662638,-121.400828,False
+3925,ca_south,Ventura,93001,34.362376,-119.351268,False
+3934,ca_south,Corona,92880,33.92539,-117.607254,False
+3952,ca_south,Fullerton,92831,33.87951,-117.896036,False
+3953,ca_south,Eastvale,92880,33.92539,-117.607254,False
+3965,ca_south,Santee,92071,32.850685,-116.995314,False
+3967,ca_south,Chula Vista,91911,32.607352,-117.05036,False
+3970,ca_north,Fresno,93726,36.793666,-119.759715,False
+3993,ca_south,Newhall,91321,34.363715,-118.487039,False
+4014,ca_south,Stanford,92078,33.117065,-117.180807,False
+4019,ca_south,Studio City,91604,34.140187,-118.394603,False
+4029,ca_south,Huntington Park,90255,33.979248,-118.217438,False
+4046,ca_south,Los Angeles,90028,34.099811,-118.326837,False
+4047,ca_north,Okland,94621,37.75113,-122.210178,False
+4056,ca_south,Mira Loma,92324,34.025186,-117.288849,False
+4078,ca_south,La Puente,91744,34.0313,-117.936777,False
+4079,ca_south,Cypress,90630,33.818477,-118.038307,False
+4101,ca_south,200 Foothill Bl.,91011,34.217935,-118.202255,False
+4114,ca_south,San Jacinto,92543,33.698645,-116.979161,False
+4117,ca_south,San Diego,92114,32.707751,-117.055297,False
+4123,ca_south,Bellflower,90706,33.887821,-118.12725,False
+4135,ca_north,Modesto,95355,37.672906,-120.946594,False
+4139,ca_south,San Diego,92131,32.899687,-117.047318,False
+4140,ca_south,Chino,91710,34.005097,-117.682525,False
+4141,ca_south,Santa Ana,92707,33.709935,-117.870431,False
+4144,ca_south,Inglewood,90305,33.958134,-118.330905,False
+4159,ca_north,San Francisco,94132,37.722214,-122.484083,False
+4160,ca_south,San Diego,92109,32.786772,-117.234207,False
+4161,ca_south,Yucaipa,92399,34.032312,-117.010577,False
+4170,ca_south,Rialto,92376,34.110537,-117.380021,False
+4171,ca_north,Seaside,93955,36.614789,-121.788022,False
+4185,ca_north,Fairfield,94533,38.280745,-122.00638,False
+4186,ca_north,Alameda,94501,37.774712,-122.278097,False
+4201,ca_south,El Segundo,90245,33.917145,-118.401554,False
+4210,ca_south,South Gate,90280,33.944159,-118.192761,False
+4255,ca_north,Monterey,93940,36.562251,-121.805604,False
+4276,ca_south,Huntington Beach,92649,33.720242,-118.045383,False
+4322,ca_south,Orange,92869,33.795479,-117.764943,False
+4345,ca_south,Wilmington,90744,33.777214,-118.259604,False
+4413,ca_south,Studio City,91604,34.140187,-118.394603,False
+4414,ca_south,Ventura,93003,34.283668,-119.223196,False
+4415,ca_south,Cerritos,90703,33.867745,-118.069471,False
+4419,ca_south,San Marcos,92078,33.117065,-117.180807,False
+4470,ca_south,Placentia,92870,33.881158,-117.854783,False
+4486,ca_south,Vista,92083,33.198084,-117.248364,False
+4498,ca_north,Sacramento,95824,38.517435,-121.44144,False
+4501,ca_south,Santa Monica,90404,34.026649,-118.473835,False
+4543,ca_north,San Jose,95122,37.329224,-121.834821,False
+4556,ca_south,Riverside,92504,33.908353,-117.401342,False
+4563,ca_south,Woodland Hills,91367,34.177311,-118.615704,False
+4574,ca_south,Fullerton,92833,33.880509,-117.961132,False
+4578,ca_south,Los Angeles,90045,33.942387,-118.416062,False
+4583,ca_south,San Diego,92101,32.717807,-117.172086,False
+4616,ca_south,San Diego,92154,32.579101,-116.966528,False
+4619,ca_south,Huntington Beach,92647,33.723228,-118.008692,False
+4643,ca_north,Oroville,95966,39.475369,-121.414133,False
+4666,ca_north,Roseville,95747,38.778421,-121.368829,False
+4669,ca_north,San Francisco,94109,37.794485,-122.42227,False
+4695,ca_north,Chowchilla,93610,37.087285,-120.288867,False
+4698,ca_north,Sacramento,95864,38.584047,-121.375846,False
+4705,ca_south,Fontana,92337,34.049665,-117.471472,False
+4711,ca_south,Camarillo,93010,34.227888,-119.079553,False
+4736,ca_south,Rancho Cucamonga,91737,34.155238,-117.578097,False
+4738,ca_south,San Diego,92119,32.817888,-117.031956,False
+4763,ca_south,Fullerton,92833,33.880509,-117.961132,False
+4765,ca_north,Los Altos Hills,94022,37.35536,-122.144935,False
+4785,ca_north,Clovis,93611,36.826668,-119.680572,False
+4904,ca_north,San Mateo,94403,37.538449,-122.305447,False
+4913,ca_south,Anaheim,92801,33.844983,-117.952151,False
+4919,ca_south,La Mesa,91945,32.733147,-117.034068,False
+4964,ca_south,Los Angeles,90033,34.05038,-118.211991,False
+4973,ca_north,San Francisco,94115,37.786029,-122.437366,False
+4984,ca_south,Temecula,92592,33.510939,-117.021505,False
+4990,ca_north,Hillsborough,94010,37.571918,-122.375028,False
+4997,ca_south,Long Beach,90813,33.782259,-118.196793,False
+4999,ca_south,Long Beach,90803,33.754191,-118.132363,False
+5012,ca_south,Palmdale,93550,34.410334,-118.059957,False
+5023,ca_north,San Bruno,94066,37.625389,-122.432356,False
+5025,ca_south,San Diego,92130,32.947616,-117.205825,False
+5026,ca_north,Burlingame,94010,37.571918,-122.375028,False
+5027,ca_north,San Jose,95111,37.283853,-121.826869,False
+5089,ca_south,Los Angeles,90042,34.114708,-118.192098,False
+5100,ca_south,Los Angeles,90019,34.049841,-118.33846,False
+5102,ca_south,Santa Maria,93454,34.923013,-120.259463,False
+5104,ca_north,Pacific Grove,93950,36.619101,-121.925439,False
+5107,ca_south,Upland,91786,34.10525,-117.66207,False
+5121,ca_south,Riverside,92503,33.882884,-117.451725,False
+5124,ca_south,Torrance,90503,33.839463,-118.353699,False
+5134,ca_north,Clovis,93619,36.914176,-119.593979,False
+5136,ca_south,Solvang,93460,34.673317,-119.743616,False
+5137,ca_south,San Marcos,92069,33.175303,-117.157621,False
+5171,ca_north,Monterey,93940,36.562251,-121.805604,False
+5199,ca_south,Mission Viejo,92675,33.499774,-117.653704,False
+5209,ca_south,San Diego,92129,32.963536,-117.126221,False
+5250,ca_north,Sacramento,95827,38.54836,-121.327497,False
+5274,ca_north,Sacramento,95827,38.54836,-121.327497,False
+5285,ca_south,Palos Verdes Estates,90274,33.7801,-118.372412,False
+5419,ca_north,Berkeley,94704,37.866417,-122.260922,False
+5430,ca_north,Pittsburg,94565,38.008595,-121.928315,False
+5432,ca_south,Wilmington,90744,33.777214,-118.259604,False
+5458,ca_north,Woodland,95695,38.694038,-121.852932,False
+5474,ca_south,San Diego,92117,32.824893,-117.199714,False
+5477,ca_south,San Diego,92123,32.809615,-117.134201,False
+5496,ca_north,Vacaville,95687,38.333133,-121.920151,False
+5499,ca_north,Berkeley,94704,37.866417,-122.260922,False
+5500,ca_south,Long Beach,90810,33.819841,-118.222378,False
+5507,ca_north,San Francisco,94121,37.778591,-122.495912,False
+5510,ca_south,Los Angeles,90034,34.030578,-118.399613,False
+5513,ca_south,North Hills,91343,34.238802,-118.482296,False
+5514,ca_south,Carlsbad,92009,33.095339,-117.245769,False
+5529,ca_north,Visalia,93277,36.301334,-119.372586,False
+5540,ca_south,Los Angeles,90031,34.084197,-118.208567,False
+5627,ca_south,San Diego,92154,32.579101,-116.966528,False
+5634,ca_south,Lakewood,90713,33.848022,-118.112746,False
+5647,ca_south,Los Angeles,90037,34.00266,-118.287507,False
+5669,ca_south,Rosemead,91770,34.065108,-118.082791,False
+5677,ca_north,San Jose,95113,37.334013,-121.890443,False
+5678,ca_south,Valley Glen,91606,34.185767,-118.388323,False
+5700,ca_north,San Francisco,94131,37.745917,-122.441473,False
+5728,ca_north,Santa Rosa,95409,38.468485,-122.582138,False
+5760,ca_north,Marina,93933,36.676966,-121.781451,False
+5765,ca_south,Los Angeles,90063,34.045248,-118.18578,False
+5768,ca_south,Lawndale,90260,33.888534,-118.349564,False
+5772,ca_south,Los Angeles ,90022,34.023728,-118.156275,False
+5802,ca_south,Los Angeles,90033,34.05038,-118.211991,False
+5805,ca_south,Rancho Santa Margarita,92688,33.61873,-117.6108,False
+5808,ca_north,Lodi,95240,38.123544,-121.159078,False
+5810,ca_south,Whittier,90670,33.933565,-118.062611,False
+5817,ca_north,Fresno,93657,36.816858,-119.458702,False
+5818,ca_south,Santa Barbara,93101,34.419259,-119.708049,False
+5835,ca_south,Newport Coast,92657,33.595058,-117.829131,False
+5851,ca_south,Downey,90241,33.940582,-118.129472,False
+5852,ca_north,Merced,95340,37.340087,-120.406406,False
+5857,ca_south,Walnut,91789,34.018195,-117.854821,False
+5869,ca_south,Quartz Hill,93536,34.73767,-118.387424,False
+5877,ca_south,Corona,92881,33.82388,-117.570026,False
+5884,ca_south,San Diego,91942,32.777267,-117.021344,False
+5886,ca_south,Hacienda Heights,91745,33.999005,-117.972146,False
+5905,ca_north,San Jose,95126,37.326922,-121.916779,False
+5924,ca_north,San Francisco,94116,37.745399,-122.486065,False
+5940,ca_north,Redwood City,94065,37.533418,-122.249558,False
+5966,ca_south,Huntington Beach,92648,33.679045,-118.013011,False
+6000,ca_south,Los Angeles,90036,34.070291,-118.349191,False
+6036,ca_north,Palo Alto,94301,37.444218,-122.149855,False
+6039,ca_north,Pebble Beach,93953,36.587441,-121.944816,False
+6059,ca_north,Livermore,94551,37.750512,-121.749249,False
+6060,ca_south,Rosamond,93560,34.878782,-118.318326,False
+6069,ca_south,Bloomington,92316,34.057066,-117.391179,False
+6072,ca_south,Newport Beach,92660,33.634626,-117.874882,False
+6123,ca_south,Lake Elsinore,92530,33.633056,-117.370461,False
+6174,ca_north,Winters,95694,38.57166,-122.064168,False
+6220,ca_south,Los Alamitos,90720,33.795012,-118.062692,False
+6238,ca_north,Los Altos,95134,37.430021,-121.945263,False
+6241,ca_north,San Jose,95131,37.387267,-121.897948,False
+6305,ca_north,Fresno,93730,36.906027,-119.751141,False
+6382,ca_south,Vista,92081,33.164549,-117.24055,False
+6398,ca_south,Santa Paula,93060,34.372031,-119.096695,False
+6410,ca_north,Salinas,93906,36.722676,-121.633667,False
+6418,ca_north,San Francisco,94122,37.760459,-122.483894,False
+6474,ca_north,Fairfield,94533,38.280745,-122.00638,False
+6499,ca_south,Orange,92867,33.815667,-117.799162,False
+6506,ca_north,Salinas,93901,36.647856,-121.630305,False
+6515,ca_south,Calexico,92231,32.687636,-115.564373,False
+6535,ca_south,Huntington Beach,92646,33.661029,-117.967948,False
+6553,ca_south,Oxnard,93036,34.248141,-119.153454,False
+6554,ca_south,La Mirada,90638,33.902045,-118.008961,False
+6560,ca_south,Irvine,92603,33.629259,-117.79408,False
+6612,ca_north,Antioch,94531,37.956648,-121.77779,False
+6619,ca_north,Livermore,94550,37.519983,-121.575595,False
+6644,ca_north,Rocklin,95765,38.819738,-121.278321,False
+6650,ca_north,Fresno,93704,36.80031,-119.800906,False
+6657,ca_north,Visalia,93277,36.301334,-119.372586,False
+6658,ca_south,Los Angeles,90041,34.137412,-118.207607,False
+6659,ca_south,Escondido,92026,33.210965,-117.124788,False
+6662,ca_north,Pleasant Hill,94523,37.954163,-122.075772,False
+6665,ca_north,Monterey,93940,36.562251,-121.805604,False
+6668,ca_south,Hesperia,92345,34.360972,-117.313039,False
+6688,ca_north,San Jose,95129,37.305958,-122.00072,False
+6692,ca_south,San Bernardino,92404,34.178633,-117.238926,False
+6695,ca_south,San Marcos,92078,33.117065,-117.180807,False
+6699,ca_north,Atwater,95301,37.306149,-120.655999,False
+6711,ca_north,Atwater,95301,37.306149,-120.655999,False
+6718,ca_north,Oakland,94611,37.831917,-122.215793,False
+6755,ca_south,Fontana,92336,34.136862,-117.460336,False
+6764,ca_south,Fillmore,93015,34.408873,-118.870202,False
+6804,ca_north,Livingston,95334,37.349677,-120.751284,False
+6814,ca_north,Santa Rosa,95404,38.525733,-122.690443,False
+6821,ca_south,Chino,91752,33.996484,-117.531335,False
+6822,ca_north,Sunnyvale,95135,37.223357,-121.525695,False
+6883,ca_north,Santa Rosa,95409,38.468485,-122.582138,False
+6884,ca_north,Hollister,95023,36.919993,-121.322188,False
+6885,ca_south,San Diego,92116,32.764841,-117.123124,False
+6904,ca_south,Los Angeles,90002,33.948987,-118.24678,False
+6915,ca_south,Hesperia,92345,34.360972,-117.313039,False
+6918,ca_north,Napa,94558,38.389135,-122.188412,False
+6926,ca_north,Clovis,93611,36.826668,-119.680572,False
+6934,ca_south,Camarillo,93012,34.203394,-118.991442,False
+6938,ca_south,Los Angeles,90066,34.002028,-118.430656,False
+6960,ca_south,Riverside,92507,33.991122,-117.306821,False
+6962,ca_north,Mountain View,94041,37.388239,-122.075351,False
+6981,ca_north,Concord,94521,37.95291,-121.969696,False
+6995,ca_south,Escondido,92029,33.08553,-117.123967,False
+7025,ca_south,Fountain Valley,92708,33.710582,-117.951129,False
+7042,ca_south,Long Beach,90813,33.782259,-118.196793,False
+7051,ca_south,Baldwin Park,91706,34.09741,-117.968269,False
+7057,ca_north,Orange Cove,93646,36.632274,-119.289353,False
+7096,ca_north,Los Gatos,95030,37.221646,-121.983242,False
+7137,ca_north,Concord,94518,37.950521,-122.022078,False
+7157,ca_south,Brea,92821,33.931943,-117.854942,False
+7185,ca_south,Glendora,91741,34.163363,-117.834121,False
+7229,ca_north,Sacramento,95821,38.625693,-121.384916,False
+7230,ca_south,Irvine,92604,33.690689,-117.789137,False
+7245,ca_north,San Lorenzo,94580,37.678001,-122.133367,False
+7249,ca_south,Chula Vista,91911,32.607352,-117.05036,False
+7308,ca_north,Los Altos,94024,37.350388,-122.098686,False
+7317,ca_north,San Francisco,94112,37.720546,-122.443166,False
+7322,ca_south,Yucca Valley,92284,34.160076,-116.424717,False
+7323,ca_south,Oxnard,93036,34.248141,-119.153454,False
+7324,ca_south,Oxnard,93033,34.160093,-119.135801,False
+7326,ca_south,Oxnard,93030,34.205097,-119.17532,False
+7327,ca_south,Oxnard,93036,34.248141,-119.153454,False
+7401,ca_north,Concord,94520,37.993028,-122.035251,False
+7413,ca_north,Pacific Grove,93933,36.676966,-121.781451,False
+7415,ca_south,West Hills,91307,34.200485,-118.664852,False
+7419,ca_north,Dublin,94568,37.715966,-121.901141,False
+7441,ca_south,Chula Vista,91910,32.637096,-117.061758,False
+7445,ca_north,Palo Alto,94301,37.444218,-122.149855,False
+7447,ca_south,Irvine,92618,33.667307,-117.73358,False
+7455,ca_south,Harbor City,90710,33.798905,-118.300239,False
+7468,ca_north,San Francisco,94124,37.728995,-122.381315,False
+7482,ca_south,Riverside,92507,33.991122,-117.306821,False
+7528,ca_north,Morgan Hill,95037,37.13182,-121.681247,False
+7607,ca_south,Palmdale,93551,34.589618,-118.227381,False
+7663,ca_north,Fresno,93723,36.789756,-119.952559,False
+7667,ca_north,Napa,94559,38.251125,-122.296089,False
+7686,ca_north,Lafayette,94549,37.901137,-122.119081,False
+7777,ca_north,Greenfield,93927,36.275587,-121.391924,False
+7778,ca_south,Bakersfield,93312,35.391845,-119.119548,False
+7847,ca_north,San Francisco,94116,37.745399,-122.486065,False
+7871,ca_south,South Gate,90280,33.944159,-118.192761,False
+7887,ca_south,Camarillo,93012,34.203394,-118.991442,False
+8006,ca_south,Los Angeles,90012,34.065975,-118.238642,False
+8016,ca_north,Rohnert Park,94928,38.34593,-122.693507,False
+8033,ca_north,Piedmont,94611,37.831917,-122.215793,False
+8045,ca_north,Castro Valley,94546,37.745399,-122.103127,False
+8048,ca_north,East Palo Alto,94303,37.457883,-122.115097,False
+8060,ca_south,Valencia,91355,34.40185,-118.570014,False
+8091,ca_north,Castroville,95012,36.788828,-121.734889,False
+8119,ca_south,Imperial,92251,32.86923,-115.714039,False
+8262,ca_north,Palo Alto,94301,37.444218,-122.149855,False
+8404,ca_north,Fremont,94555,37.547594,-122.09822,False
+8521,ca_south,Westminster,,33.752292,-117.993868,False
+8533,ca_south,Camarillo,,34.221823,-119.032154,False
+8537,ca_south,Imperial Beach,,32.56914,-117.114921,False
+8600,ca_south,Los Angeles,,34.019394,-118.410825,False
+8751,ca_north,Orinda,,37.88161,-122.168595,False
+8768,ca_north,Fresno,,36.782684,-119.793359,False
+8793,ca_north,Half Moon Bay,,37.467319,-122.440485,False
+8840,ca_north,San Francisco,,37.727239,-123.032229,False
+8852,ca_north,San Francisco,,37.727239,-123.032229,False
+8870,ca_south,San Diego,,32.814977,-117.135562,False
+8888,ca_south,Riverside,,33.938143,-117.393168,False
+8891,ca_south,Oceanside,,33.224601,-117.306291,False
+8898,ca_south,Fullerton,,33.885716,-117.928025,False
+9006,ca_north,San Jose,,37.296011,-121.814552,False
+9038,ca_north,San Francisco,,37.727239,-123.032229,False
+9084,ca_south,Goleta,,34.435441,-119.858946,False
+9111,ca_north,Rohnert Park,,38.347617,-122.700896,False
+9114,ca_north,Fremont,,37.49446,-121.94115,False
+9125,ca_north,Newark,,37.504253,-122.03191,False
+9143,ca_north,San Francisco,,37.727239,-123.032229,False
+9172,ca_south,Los Angeles,,34.019394,-118.410825,False
+9202,ca_north,San Jose,,37.296011,-121.814552,False
+9271,ca_south,Mission Viejo,,33.609335,-117.656471,False
+9400,ca_north,Santa Clara,,37.364621,-121.967973,False
+9408,ca_south,Downey,,33.938237,-118.130856,False
+9452,ca_south,San Diego,,32.814977,-117.135562,False
+9470,ca_north,Fremont,,37.49446,-121.94115,False
+9471,ca_south,Pasadena,,34.160602,-118.137954,False
+9504,ca_north,San Jose,,37.296011,-121.814552,False
+9505,ca_south,Los Angeles,,34.019394,-118.410825,False
+9520,ca_south,Fountain Valley,,33.710582,-117.951129,False
+9538,ca_south,Castaic,,34.477444,-118.632681,False
+9573,ca_south,San Diego,,32.814977,-117.135562,False
+9584,ca_north,Mountain View,,37.399686,-122.079269,False
+9615,ca_south,Highland,,34.113473,-117.165729,False
+9634,ca_north,Cupertino,,37.3194,-122.044957,False
+9666,ca_south,Victorville,,34.527735,-117.353579,False
+9696,ca_south,Los Angeles,,34.019394,-118.410825,False
+9706,ca_north,Visalia,,36.32803,-119.328519,False
+9730,ca_south,Escondido,,33.133053,-117.074043,False
+9772,ca_south,Winnetka,,34.019394,-118.410825,False
+9781,ca_north,Walnut Creek,,37.902666,-122.040479,False
+10059,ca_north,San Jose,,37.296011,-121.814552,False
+10147,ca_south,Glendale,,34.181393,-118.24583,False
+10166,ca_south,Port Hueneme,,34.162143,-119.204177,False
+10212,ca_north,Dublin,,37.716137,-121.896229,False
+10221,ca_north,San Francisco,,37.727239,-123.032229,False
+10252,ca_north,San Jose,,37.296011,-121.814552,False
+10281,ca_north,San Francisco,,37.727239,-123.032229,False
+10336,ca_south,San Diego,,32.814977,-117.135562,False
+10339,ca_north,Seaside,,36.625058,-121.817804,False
+10372,ca_north,Milpitas,,37.433141,-121.890924,False
+10392,ca_south,Brawley,,32.978454,-115.528569,False
+10500,ca_north,Oakland,,37.769846,-122.22569,False
+10586,ca_south,San Diego,,32.814977,-117.135562,False
+10597,ca_south,Los Angeles,,34.019394,-118.410825,False
+10615,ca_north,Pinole,,38.001702,-122.318488,False
+10625,ca_south,Calipatria,,33.168651,-115.485641,False
+10644,ca_north,Union City,,37.602759,-122.01884,False
+10658,ca_south,Los Angeles,,34.019394,-118.410825,False
+10936,ca_south,Glendale,,34.181393,-118.24583,False
+11024,ca_south,North Hollywood,,34.019394,-118.410825,False
+11096,ca_south,Santa Clarita,,34.416504,-118.500693,False
+11230,ca_north,Los Altos,,37.368431,-122.09657,False
+11243,ca_north,Walnut Creek,,37.902666,-122.040479,False
+11247,ca_north,Salinas,,36.690217,-121.633793,False
+11274,ca_north,Sacramento,,38.567694,-121.468161,False
+11296,ca_north,Merced,,37.305712,-120.477905,False
+11459,ca_south,San Diego,,32.814977,-117.135562,False
+11463,ca_north,San Francisco,,37.727239,-123.032229,False

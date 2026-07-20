@@ -83,13 +83,17 @@ Frontend modules live in `docs/assets/js/` (`app.js`, `data.js`, `hero.js`,
   `/team/{key}` endpoint, used only to split the California district into
   "Northern California" / "Southern California" at 35.789°N (see
   `pipeline/regions.py` / `pipeline/tba.py`). TBA's own `lat`/`lng` team
-  fields are no longer populated, so each team's `postal_code` is resolved
-  to a centroid via the US Census Bureau's 2023 Gazetteer ZCTA file instead
-  (`pipeline/geocode.py`, cached to `data/raw/zcta_centroids.csv`). Requires
-  a `config/tba_key.txt` API key (gitignored, never committed); results are
-  cached to `data/raw/tba_ca_locations.json`. Teams with no US postal code
-  on file, or one outside the ZCTA table (e.g. federal-facility ZIPs), are
-  excluded and listed in `data/review/ca_unmapped_teams.csv`.
+  fields are no longer populated, so each team's location is resolved via
+  `pipeline/geocode.py` in two tiers: first `postal_code` against the US
+  Census Bureau's 2023 Gazetteer ZCTA file, then -- for the many teams TBA
+  has no postal code for -- `city` against the Gazetteer's California
+  places file (both cached to `data/raw/*_centroids.csv`). Requires a
+  `config/tba_key.txt` API key (gitignored, never committed); raw results
+  are cached to `data/raw/tba_ca_locations.json`. Every team's resolved
+  location + assigned region is written to `data/review/ca_team_locations.csv`
+  for a human to spot-check; any team still unresolved is listed in
+  `data/review/ca_unmapped_teams.csv`. `config/ca_overrides.csv` always
+  wins over the automated result, for manual fill-ins or corrections.
 
 ## Repository layout
 

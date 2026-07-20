@@ -67,6 +67,16 @@ def test_region_naming_ca_split():
     assert regions.region_name("ca_south") == ("Southern California", "district")
 
 
+def test_load_overrides_reads_team_region_csv(tmp_path, monkeypatch):
+    (tmp_path / "config").mkdir()
+    (tmp_path / "config" / "ca_overrides.csv").write_text(
+        "# comment line\nteam,region,city\n42,ca_north,Somewhere\n", encoding="utf-8"
+    )
+    monkeypatch.setattr(regions.config, "ROOT", tmp_path)
+    assert regions._load_overrides("ca_overrides.csv") == {42: "ca_north"}
+    assert regions._load_overrides("does_not_exist.csv") == {}
+
+
 def test_region_naming():
     assert regions.region_name("fim") == ("FIRST in Michigan", "district")
     assert regions.region_name("st_fl") == ("Florida", "state")
