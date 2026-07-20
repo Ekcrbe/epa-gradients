@@ -79,6 +79,12 @@ Frontend modules live in `docs/assets/js/` (`app.js`, `data.js`, `hero.js`,
   (`https://api-statbotics.iterativerefinement.com/v3`), paginated and cached.
   2024 is taken from the API rather than the pinned CSV because that commit's
   2024 EPAs were still mid-season and compressed toward the mean.
+- **California team locations:** [The Blue Alliance](https://www.thebluealliance.com/)
+  `/team/{key}` endpoint (`lat`/`lng`), used only to split the California
+  district into "Northern California" / "Southern California" at 35.789°N
+  (see `pipeline/regions.py` / `pipeline/tba.py`). Requires a
+  `config/tba_key.txt` API key (gitignored, never committed); results are
+  cached to `data/raw/tba_ca_locations.json`.
 
 ## Repository layout
 
@@ -88,7 +94,7 @@ pipeline/              Offline data pipeline (acquire → normalize → regions 
                        strength → metrics/bootstrap → emit)
 data/raw/              Cached source data (committed, offline-rebuildable)
 data/interim/          Regenerable intermediates (gitignored)
-data/review/           Human-review artifacts (state→district map, PA team list)
+data/review/           Human-review artifacts (state→district map, PA/CA team lists)
 docs/                  The deployed static site (GitHub Pages: main /docs)
   data/                Generated JSON artifacts consumed by the frontend
 tests/                 Pipeline unit tests
