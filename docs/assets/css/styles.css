@@ -189,6 +189,8 @@ input[type="range"] { flex: 1; min-width: 140px; }
 .intro em { font-style: normal; color: var(--fg); }
 .k-hard { color: var(--harder); font-weight: 600; }
 .k-easy { color: var(--easier); font-weight: 600; }
+.noscript { background-color: maroon; color: white; }
+.noscript a { color: #8bf; }
 
 .methodology { padding: 0.4rem 1.2rem; }
 .methodology > summary { cursor: pointer; list-style: none; padding: 0.7rem 0; display: flex; align-items: center; gap: 0.5rem; }
