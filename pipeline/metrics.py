@@ -92,6 +92,66 @@ def survival_tail_coarse(region_sorted, global_sorted, settings, n_points) -> np
     return _survival_R(region_sorted, global_sorted, np.linspace(p_start, p_cap, n_points))
 
 
+def _mean_excess(sorted_vals: np.ndarray, x: np.ndarray) -> np.ndarray:
+    """e(x) = E[X - x | X > x], the mean excess (mean residual life) function.
+
+    How far above x the teams that beat x actually sit. Vectorized over x with a
+    suffix sum; NaN where nothing in the sample exceeds x.
+    """
+    n = len(sorted_vals)
+    suffix = np.concatenate([np.cumsum(sorted_vals[::-1])[::-1], [0.0]])
+    i = np.searchsorted(sorted_vals, x, side="right")
+    cnt = n - i
+    with np.errstate(divide="ignore", invalid="ignore"):
+        mean_above = np.where(cnt > 0, suffix[i] / np.maximum(cnt, 1), np.nan)
+    return mean_above - x
+
+
+def _slope_ratio(region_sorted, global_sorted, p_tail) -> np.ndarray:
+    """S(x) = e_region(x) / e_global(x) at the given global-percentile grid.
+
+    Above 1, the teams that beat x are further ahead of x locally than they are
+    worldwide -- a steeper climb from x. Below 1 they are bunched closer to x.
+    This is orthogonal to the survival ratio, which counts those teams without
+    regard to how far above x they sit.
+    """
+    x = np.quantile(global_sorted, p_tail)
+    er = _mean_excess(region_sorted, x)
+    eg = _mean_excess(global_sorted, x)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        return np.where(eg > 0, er / eg, np.nan)
+
+
+def slope_tail(region_sorted, global_sorted, settings) -> dict:
+    """Mean slope ratio over the same window mean_R uses, in both forms.
+
+    ``mean_slope`` averages S(x) alone. ``mean_slope_wt`` averages S(x)*R(x),
+    which by the identity  integral_x^inf (1-F) = (1-F(x)) * e(x)  is the ratio
+    of the areas under the two survival curves to the right of x -- i.e. total
+    excess strength above x per team, counting both how many teams beat x and
+    by how much. Averaging happens after the product, so mean_slope_wt is not
+    mean_slope * mean_R.
+    """
+    p_start, p_cap = _survival_p_range(global_sorted, settings)
+    if p_cap <= p_start:
+        return {"mean_slope": None, "mean_slope_wt": None}
+    p_tail = np.linspace(p_start, p_cap, settings["metrics"]["survival_points"])
+    s = _slope_ratio(region_sorted, global_sorted, p_tail)
+    wt = s * _survival_R(region_sorted, global_sorted, p_tail)
+    return {
+        "mean_slope": float(np.nanmean(s)) if np.any(~np.isnan(s)) else None,
+        "mean_slope_wt": float(np.nanmean(wt)) if np.any(~np.isnan(wt)) else None,
+    }
+
+
+def slope_tail_coarse(region_sorted, global_sorted, settings, n_points) -> np.ndarray | None:
+    """A low-resolution S(x) sparkline for the heatmap / small-multiples grid."""
+    p_start, p_cap = _survival_p_range(global_sorted, settings)
+    if p_cap <= p_start:
+        return None
+    return _slope_ratio(region_sorted, global_sorted, np.linspace(p_start, p_cap, n_points))
+
+
 def _gate_crossover(p_fine, d, settings):
     """Primary crossover, reported only for genuinely mixed, non-bottom-decile flips."""
     crossings = find_crossings(p_fine, d)
@@ -133,6 +193,8 @@ def compute_region(region_vals, global_sorted, p_fine, p_coarse, p_band, setting
         "D_local_coarse": d_local_coarse,
         "R_coarse": survival_tail_coarse(rs, global_sorted, settings, len(p_coarse)),
         "mean_R": survival_tail(rs, global_sorted, settings)["mean_R"],
+        "slope_coarse": slope_tail_coarse(rs, global_sorted, settings, len(p_coarse)),
+        **slope_tail(rs, global_sorted, settings),
     }
 
 

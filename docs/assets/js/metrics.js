@@ -79,3 +79,31 @@ export const METRICS = {
     },
   },
 };
+
+// Slope of difficulty, in its plain and survival-weighted forms. Both are
+// ratios centered on 1 like R, so they share its log handling; they differ only
+// in which stored array/scalar they read and how they are worded.
+const slopeMetric = (id, values, mean, label) => ({
+  ...METRICS.R,
+  id,
+  label,
+  values,
+  mean,
+  colorDomain: (rows) => spread(rows, METRICS[id], 0.05, Math.log(1.15), Math.log(4)),
+  panelDomain(rows) {
+    const [min, max] = extent(rows, this);
+    if (!isFinite(min)) return [Math.log(0.5), Math.log(2)];
+    return [Math.min(Math.log(0.5), min - 0.15), Math.max(Math.log(2), max + 0.15)];
+  },
+});
+
+METRICS.S = slopeMetric("S", (r) => r.slope_coarse || [], (r) => r.mean_slope, "slope");
+
+// The weighted form's per-column values are the elementwise product of the two
+// stored arrays, so only its mean needs its own field (the mean of the product
+// is not the product of the means).
+METRICS.SW = slopeMetric("SW", (r) => {
+  const s = r.slope_coarse, q = r.R_coarse;
+  if (!s || !q) return [];
+  return s.map((v, i) => (v == null || q[i] == null ? null : v * q[i]));
+}, (r) => r.mean_slope_wt, "excess area");

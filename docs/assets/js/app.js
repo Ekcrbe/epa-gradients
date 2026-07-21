@@ -4,6 +4,7 @@ import { renderHero } from "./hero.js";
 import { renderHeatmap } from "./heatmap.js";
 import { renderSmallMultiples } from "./smallmultiples.js";
 import { renderSurvival } from "./survival.js";
+import { renderSlope } from "./slope.js";
 import { renderStrength } from "./strength.js";
 import { renderComparison } from "./comparison.js";
 import { localDisplacementCurve, survivalPRange } from "./curves.js";
@@ -42,6 +43,13 @@ const els = {
   survivalChart: document.getElementById("survival-chart"),
   survivalLegend: document.getElementById("survival-legend"),
   survivalXMode: document.getElementById("survival-xmode"),
+  slopeSub: document.getElementById("slope-sub"),
+  slopeChips: document.getElementById("slope-chips"),
+  slopeChart: document.getElementById("slope-chart"),
+  slopeLegend: document.getElementById("slope-legend"),
+  slopeNote: document.getElementById("slope-note"),
+  slopeXMode: document.getElementById("slope-xmode"),
+  slopeWeighted: document.getElementById("slope-weighted"),
   strengthSub: document.getElementById("strength-sub"),
   strengthChart: document.getElementById("strength-chart"),
   strengthLegend: document.getElementById("strength-legend"),
@@ -52,7 +60,7 @@ const els = {
 
 const state = {
   regionId: null, year: 2026, pooled: false, single: false,
-  cmpRegion1: null, cmpRegion2: null, survivalX: "epa",
+  cmpRegion1: null, cmpRegion2: null, survivalX: "epa", slopeX: "epa", slopeWeighted: false,
 };
 let manifest = null, summary = null, currentRegion = null;
 
@@ -61,6 +69,8 @@ let manifest = null, summary = null, currentRegion = null;
 const allRegions = [
   makeAllRegions("d", METRICS.D, ".hero"),
   makeAllRegions("r", METRICS.R, ".survival"),
+  // Follows the section's weighting toggle, so the metric is resolved per render.
+  makeAllRegions("s", () => (state.slopeWeighted ? METRICS.SW : METRICS.S), ".slope"),
 ];
 const renderAllRegions = () => { for (const b of allRegions) b.render(); };
 
@@ -128,6 +138,15 @@ function wireEvents() {
     state.survivalX = els.survivalXMode.checked ? "pct" : "epa";
     renderSelected();
   });
+  els.slopeXMode.addEventListener("change", () => {
+    state.slopeX = els.slopeXMode.checked ? "pct" : "epa";
+    renderSelected();
+  });
+  // Weighting drives both the curve and this section's All Regions block.
+  els.slopeWeighted.addEventListener("change", () => {
+    state.slopeWeighted = els.slopeWeighted.checked;
+    renderSelected(); renderAllRegions();
+  });
   els.cmpRegion1.addEventListener("change", () => { state.cmpRegion1 = els.cmpRegion1.value; renderCompare(); });
   els.cmpRegion2.addEventListener("change", () => { state.cmpRegion2 = els.cmpRegion2.value; renderCompare(); });
   let t;
@@ -183,6 +202,8 @@ function renderSelected() {
   els.scopeCaption.textContent = state.pooled ? "(all-time)" : "(postseason)";
   els.title.textContent = `${region.name} vs. the world`;
   els.survivalSub.textContent = `${region.name} · ${state.pooled ? "pooled" : state.year}`;
+  els.slopeSub.textContent = `${region.name} · ${state.pooled ? "pooled" : state.year}`;
+  els.slopeNote.innerHTML = slopeNote();
 
   // Strength-over-time spans every postseason regardless of the selected
   // season, so it renders before the (season-specific) empty-state return.
@@ -208,6 +229,7 @@ function renderSelected() {
     }
     els.chart.innerHTML = `<div class="empty-state">${msg}</div>`;
     els.survivalChart.innerHTML = ""; els.survivalLegend.innerHTML = ""; els.survivalChips.innerHTML = "";
+    els.slopeChart.innerHTML = ""; els.slopeLegend.innerHTML = ""; els.slopeChips.innerHTML = "";
     els.chips.innerHTML = ""; els.legend.innerHTML = ""; els.readout.textContent = ""; els.status.textContent = "";
     return;
   }
@@ -216,9 +238,11 @@ function renderSelected() {
   els.readout.textContent = `${scopeLabel()}. ${describe(D)}`;
   renderChips(sc);
   renderSurvivalChips(sc);
+  renderSlopeChips(sc);
   renderLegend(sc);
   renderHero(els.chart, manifest, region, scope);
   renderSurvival(els.survivalChart, els.survivalLegend, manifest, region, scope, state.survivalX);
+  renderSlope(els.slopeChart, els.slopeLegend, manifest, region, scope, state.slopeX, state.slopeWeighted);
   els.status.textContent = sc.band_local_lo ? "" : `Small sample (n=${sc.n}) — no bootstrap band shown; interpret the curve cautiously.`;
 }
 
@@ -246,6 +270,26 @@ function renderSurvivalChips(sc) {
   els.survivalChips.innerHTML =
     chip("teams (n)", sc.n) +
     chip("avg R", r != null ? `${r.toFixed(2)}×` : "—", cls);
+}
+
+function renderSlopeChips(sc) {
+  if (!els.slopeChips) return;
+  const v = state.slopeWeighted ? sc.mean_slope_wt : sc.mean_slope;
+  const cls = v != null ? (v >= 1 ? "harder" : "easier") : "";
+  els.slopeChips.innerHTML =
+    chip("teams (n)", sc.n) +
+    chip(state.slopeWeighted ? "avg S×R" : "avg S", v != null ? `${v.toFixed(2)}×` : "—", cls);
+}
+
+// The two forms measure different things, so the explainer swaps with the toggle.
+function slopeNote() {
+  if (state.slopeWeighted) {
+    return "Now weighted by the depth ratio, which makes this the ratio of the areas under the two survival curves to the right of each cutoff &mdash; the <em>total</em> excess strength above that level per team, counting both how many teams are above it and how far above they sit. " +
+      "<span class=\"k-hard\">Above 1&times;</span> there is more strength stacked above that level than worldwide; <span class=\"k-easy\">below</span>, less.";
+  }
+  return "For each skill level, how far above it the teams that beat it actually sit &mdash; the region&rsquo;s mean gap divided by the world&rsquo;s. " +
+    "<span class=\"k-hard\">Above 1&times;</span> the climb is steeper than the world&rsquo;s: the teams ahead are further ahead. <span class=\"k-easy\">Below</span>, they&rsquo;re bunched closer in, so a small gain in EPA moves you past more of them. " +
+    "This is independent of <em>how many</em> teams are above you &mdash; that&rsquo;s the depth ratio.";
 }
 
 const chip = (k, v, cls = "") => `<div class="chip ${cls}"><span class="k">${k}</span><span class="v">${v}</span></div>`;
@@ -299,6 +343,8 @@ function makeAllRegions(prefix, metric, focusSelector) {
   const el = (suffix) => document.getElementById(`${prefix}-${suffix}`);
   const focusEl = document.querySelector(focusSelector);
   const onSelect = (id) => selectRegion(id, focusEl);
+  // A block's metric may depend on section state, so allow a getter.
+  const getMetric = typeof metric === "function" ? metric : () => metric;
   const ui = {
     sort: el("sort-select"), minn: el("minn-range"), minnOut: el("minn-out"),
     count: el("ar-count"), legend: el("hm-legend"),
@@ -321,6 +367,7 @@ function makeAllRegions(prefix, metric, focusSelector) {
 
   function render() {
     if (!summary) return;
+    const metric = getMetric();
     const scope = scopeKey();
     const all = buildRows(scope);
     const rows = all.filter((r) => r.n >= own.minN).sort(SORTS[own.sort](metric));

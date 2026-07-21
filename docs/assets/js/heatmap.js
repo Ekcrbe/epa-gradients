@@ -41,8 +41,10 @@ export function renderHeatmap(el, { manifest, rows, metric, axis, M, selectedId,
     .attr("y", (d) => top + d.ri * rowH)
     .attr("width", cellW + 0.6)
     .attr("height", rowH - 1)
-    // Cells with no computable value (an empty tail) stay at the neutral midpoint.
-    .attr("fill", (d) => divergingColor(d.t ?? 0, M, dark));
+    // A cell with no computable value (nothing in the region above that cutoff)
+    // is left blank -- it is an absence of data, not an average result, and
+    // painting it at the neutral midpoint would read as the latter.
+    .attr("fill", (d) => (d.t == null ? "transparent" : divergingColor(d.t, M, dark)));
 
   const labels = svg.append("g");
   labels.selectAll("text.hm-label").data(rows).join("text")
