@@ -9,7 +9,27 @@ import { survivalCurve } from "./curves.js";
 
 const REF_PERCENTILES = [10, 25, 50, 75, 90, 95, 99];
 
-export function renderSurvival(el, legendEl, manifest, region, scope) {
+// The x mapping over the same [xLo, xHi] EPA span, in one of two flavors:
+// "epa" spaces equal EPA gaps equally, "pct" spaces equal shares of the world's
+// teams equally. The latter is a polylinear scale threaded through the global
+// quantile knots, which keeps invert() and tick generation working -- so both
+// axes (EPA ticks below, percentile markers above) simply land in new spots.
+function makeXScale(mode, xLo, xHi, qFine, pFine, iW) {
+  if (mode !== "pct" || !qFine || !qFine.length) return d3.scaleLinear([xLo, xHi], [0, iW]);
+  const pLo = interp1d(qFine, pFine, xLo), pHi = interp1d(qFine, pFine, xHi);
+  if (!(pHi > pLo)) return d3.scaleLinear([xLo, xHi], [0, iW]);
+  const domain = [xLo], range = [0];
+  for (let i = 0; i < qFine.length; i++) {
+    // Ties in EPA would break strict monotonicity, which invert() needs.
+    if (qFine[i] <= domain[domain.length - 1] || qFine[i] >= xHi) continue;
+    domain.push(qFine[i]);
+    range.push(((pFine[i] - pLo) / (pHi - pLo)) * iW);
+  }
+  domain.push(xHi); range.push(iW);
+  return d3.scaleLinear(domain, range);
+}
+
+export function renderSurvival(el, legendEl, manifest, region, scope, xMode = "epa") {
   el.innerHTML = "";
   if (legendEl) legendEl.innerHTML = "";
   const sc = region.scopes[scope];
@@ -33,7 +53,7 @@ export function renderSurvival(el, legendEl, manifest, region, scope) {
   const iW = width - m.left - m.right, iH = height - m.top - m.bottom;
 
   const xs = pts.map((p) => p.x), rs = pts.map((p) => p.R);
-  const x = d3.scaleLinear([d3.min(xs), d3.max(xs)], [0, iW]);
+  const x = makeXScale(xMode, d3.min(xs), d3.max(xs), qFine, pFine, iW);
   const meanR = sc.mean_R;
   const yVals = meanR != null ? [...rs, meanR] : rs;
   const yMin = Math.min(0.5, d3.min(yVals) * 0.85);
@@ -65,7 +85,9 @@ export function renderSurvival(el, legendEl, manifest, region, scope) {
 
   // Faint global-percentile markers to orient the raw-EPA x-axis.
   if (qFine && qFine.length) {
-    const [xMin, xMax] = x.domain();
+    // Read the span off the data, not x.domain() -- in percentile mode the
+    // domain is the full array of quantile knots, not a two-element extent.
+    const xMin = d3.min(xs), xMax = d3.max(xs);
     for (const pct of REF_PERCENTILES) {
       const val = interp1d(pFine, qFine, pct / 100);
       if (val == null || val < xMin || val > xMax) continue;

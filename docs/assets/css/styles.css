@@ -61,8 +61,18 @@ input[type="range"] { flex: 1; min-width: 140px; }
   font-variant-numeric: tabular-nums; font-weight: 600; min-width: 3.2ch;
   padding: 0.15rem 0.45rem; background: var(--chip-bg); border-radius: 6px; font-size: 0.9rem;
 }
-.pooled-toggle { display: flex; align-items: center; gap: 0.35rem; font-size: 0.85rem; color: var(--muted); white-space: nowrap; cursor: pointer; }
-.pooled-toggle input { accent-color: var(--accent); }
+.pooled-toggle, .plot-toggle { display: flex; align-items: center; gap: 0.35rem; font-size: 0.85rem; color: var(--muted); white-space: nowrap; cursor: pointer; }
+.pooled-toggle input, .plot-toggle input { accent-color: var(--accent); }
+/* Chips plus the plot's own toggle, stacked at the right of a section head. */
+.head-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0.4rem; }
+.plot-toggle { font-size: 0.8rem; }
+
+/* Page sections — Displacement / Depth ratio / Comparisons */
+.page-section { margin-top: 2rem; }
+.page-section:first-of-type { margin-top: 0; }
+.page-section-head { border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; margin-bottom: 1rem; }
+.page-section-head h2 { margin: 0; font-size: 1.35rem; letter-spacing: -0.01em; }
+.page-section-sub { margin: 0.15rem 0 0; color: var(--muted); font-size: 0.9rem; max-width: 62ch; }
 
 /* Hero */
 .hero { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 1.1rem 1.2rem 1.3rem; }
@@ -95,6 +105,18 @@ input[type="range"] { flex: 1; min-width: 140px; }
 .avg-line { stroke: var(--refline); stroke-width: 1.5; stroke-dasharray: 4 3; }
 .avg-label { fill: var(--refline); font-size: 11px; font-weight: 600; }
 
+/* Strength-over-time: two solid-dot series on a shared, zero-aligned axis. */
+.strength-line { fill: none; stroke-width: 1.8; stroke-linejoin: round; }
+.strength-line.strength-d { stroke: var(--accent); }
+.strength-line.strength-r { stroke: var(--refline); }
+.strength-dot { stroke: var(--panel); stroke-width: 1; }
+.strength-d-dot { fill: var(--accent); }
+.strength-r-dot { fill: var(--refline); }
+.axis-d text { fill: var(--accent); }
+.axis-r text { fill: var(--refline); }
+.axis-title-d { fill: var(--accent); }
+.axis-title-r { fill: var(--refline); }
+
 /* Tooltip */
 .tooltip {
   position: absolute; pointer-events: none; z-index: 5; opacity: 0;
@@ -124,7 +146,8 @@ input[type="range"] { flex: 1; min-width: 140px; }
 /* Phase 3 sections */
 .card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 1.1rem 1.2rem 1.3rem; margin-top: 1.25rem; }
 .section-head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
-.section-head h2 { margin: 0; font-size: 1.15rem; }
+.section-head h2, .section-head h3 { margin: 0; font-size: 1.15rem; }
+.hero-head h3 { margin: 0 0 0.15rem; font-size: 1.2rem; }
 .section-sub { margin: 0; color: var(--muted); font-size: 0.88rem; }
 .section-note { margin: 0.7rem 0 0; color: var(--faint); font-size: 0.82rem; max-width: 70ch; }
 
@@ -158,7 +181,7 @@ input[type="range"] { flex: 1; min-width: 140px; }
 .sm-meta .hard { color: var(--harder); }
 .sm-meta .easy { color: var(--easier); }
 .sm-svg { width: 100%; height: 52px; display: block; margin-top: 2px; }
-#smallmultiples { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; }
+.sm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; }
 .view-panel[hidden] { display: none; }
 
 /* Intro + methodology */
@@ -193,5 +216,5 @@ input[type="range"] { flex: 1; min-width: 140px; }
   .ar-controls { gap: 0.6rem 1rem; }
   .stat-chips { width: 100%; }
   .chip { flex: 1; }
-  #smallmultiples { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+  .sm-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
 }

@@ -4,22 +4,23 @@ import { renderHero } from "./hero.js";
 import { renderHeatmap } from "./heatmap.js";
 import { renderSmallMultiples } from "./smallmultiples.js";
 import { renderSurvival } from "./survival.js";
+import { renderStrength } from "./strength.js";
 import { renderComparison } from "./comparison.js";
-import { localDisplacementCurve } from "./curves.js";
+import { localDisplacementCurve, survivalPRange } from "./curves.js";
 import { divergingColor } from "./theme.js";
+import { METRICS } from "./metrics.js";
 
 const TYPE_LABEL = { district: "Districts", state: "States / provinces", country: "Countries" };
 const TYPE_ORDER = ["district", "state", "country"];
 
-// "Avg difficulty" sorts by mean right-tail survival ratio (see survival.js /
-// the Methodology section) -- the site's headline single-number difficulty
-// stat. Regions with no computable value (too little tail depth) fall back to
-// R=1 ("average"), neither pushed to the hard nor the easy end.
+// Sorts shared by both All Regions blocks. "mean_*" ranks by the block's own
+// metric; regions with no computable mean (too little tail depth) fall back to
+// its neutral value, so they land in the middle rather than at either end.
 const SORTS = {
-  meanD_desc: (a, b) => (b.mean_survival_R ?? 1) - (a.mean_survival_R ?? 1),
-  meanD_asc: (a, b) => (a.mean_survival_R ?? 1) - (b.mean_survival_R ?? 1),
-  top_desc: (a, b) => b.top_heaviness - a.top_heaviness,
-  n_desc: (a, b) => b.n - a.n,
+  mean_desc: (m) => (a, b) => (m.mean(b) ?? m.center) - (m.mean(a) ?? m.center),
+  mean_asc: (m) => (a, b) => (m.mean(a) ?? m.center) - (m.mean(b) ?? m.center),
+  top_desc: () => (a, b) => b.top_heaviness - a.top_heaviness,
+  n_desc: () => (a, b) => b.n - a.n,
 };
 
 const els = {
@@ -29,7 +30,6 @@ const els = {
   pooled: document.getElementById("pooled-toggle"),
   single: document.getElementById("single-toggle"),
   scopeCaption: document.getElementById("scope-caption"),
-  hero: document.querySelector(".hero"),
   title: document.getElementById("hero-title"),
   readout: document.getElementById("hero-readout"),
   chips: document.getElementById("stat-chips"),
@@ -41,25 +41,28 @@ const els = {
   survivalChips: document.getElementById("survival-chips"),
   survivalChart: document.getElementById("survival-chart"),
   survivalLegend: document.getElementById("survival-legend"),
+  survivalXMode: document.getElementById("survival-xmode"),
+  strengthSub: document.getElementById("strength-sub"),
+  strengthChart: document.getElementById("strength-chart"),
+  strengthLegend: document.getElementById("strength-legend"),
   cmpRegion1: document.getElementById("cmp-region1"),
   cmpRegion2: document.getElementById("cmp-region2"),
   cmpChart: document.getElementById("cmp-chart"),
-  sort: document.getElementById("sort-select"),
-  minn: document.getElementById("minn-range"),
-  minnOut: document.getElementById("minn-out"),
-  arCount: document.getElementById("ar-count"),
-  hmLegend: document.getElementById("hm-legend"),
-  viewHeatmap: document.getElementById("view-heatmap"),
-  viewGrid: document.getElementById("view-grid"),
-  heatmap: document.getElementById("heatmap"),
-  sm: document.getElementById("smallmultiples"),
 };
 
 const state = {
-  regionId: null, year: 2026, pooled: false, single: false, sort: "meanD_desc", minN: 20, view: "heatmap",
-  cmpRegion1: null, cmpRegion2: null,
+  regionId: null, year: 2026, pooled: false, single: false,
+  cmpRegion1: null, cmpRegion2: null, survivalX: "epa",
 };
 let manifest = null, summary = null, currentRegion = null;
+
+// One All Regions block per metric: same heatmap + small-multiples pair, each
+// over its own metric and with its own sort / min-n / view state.
+const allRegions = [
+  makeAllRegions("d", METRICS.D, ".hero"),
+  makeAllRegions("r", METRICS.R, ".survival"),
+];
+const renderAllRegions = () => { for (const b of allRegions) b.render(); };
 
 init().catch((err) => { els.status.textContent = `Failed to load data: ${err.message}`; });
 
@@ -74,7 +77,7 @@ async function init() {
   state.cmpRegion2 = manifest.regions[1]?.id || manifest.regions[0].id;
   els.cmpRegion1.value = state.cmpRegion1;
   els.cmpRegion2.value = state.cmpRegion2;
-  await selectRegion(manifest.regions[0].id, false);
+  await selectRegion(manifest.regions[0].id, null);
   await renderCompare();
 }
 
@@ -104,7 +107,7 @@ function buildRegionOptions() {
 }
 
 function wireEvents() {
-  els.region.addEventListener("change", () => selectRegion(els.region.value, false));
+  els.region.addEventListener("change", () => selectRegion(els.region.value, null));
   els.year.addEventListener("input", () => {
     state.year = +els.year.value;
     els.yearOut.textContent = els.year.value;
@@ -120,30 +123,17 @@ function wireEvents() {
     state.single = els.single.checked;
     renderSelected(); renderAllRegions(); renderCompare();
   });
-  els.sort.addEventListener("change", () => { state.sort = els.sort.value; renderAllRegions(); });
-  els.minn.addEventListener("input", () => {
-    state.minN = +els.minn.value; els.minnOut.textContent = els.minn.value; renderAllRegions();
+  // Affects only the depth-ratio curve's x mapping, so nothing else re-renders.
+  els.survivalXMode.addEventListener("change", () => {
+    state.survivalX = els.survivalXMode.checked ? "pct" : "epa";
+    renderSelected();
   });
-  els.viewHeatmap.addEventListener("click", () => setView("heatmap"));
-  els.viewGrid.addEventListener("click", () => setView("grid"));
   els.cmpRegion1.addEventListener("change", () => { state.cmpRegion1 = els.cmpRegion1.value; renderCompare(); });
   els.cmpRegion2.addEventListener("change", () => { state.cmpRegion2 = els.cmpRegion2.value; renderCompare(); });
   let t;
   window.addEventListener("resize", () => { clearTimeout(t); t = setTimeout(() => { renderSelected(); renderAllRegions(); renderCompare(); }, 160); });
   const mq = window.matchMedia("(prefers-color-scheme: dark)");
   mq.addEventListener?.("change", () => { renderSelected(); renderAllRegions(); renderCompare(); });
-}
-
-function setView(v) {
-  state.view = v;
-  const grid = v === "grid";
-  els.viewGrid.classList.toggle("active", grid);
-  els.viewHeatmap.classList.toggle("active", !grid);
-  els.viewGrid.setAttribute("aria-pressed", grid);
-  els.viewHeatmap.setAttribute("aria-pressed", !grid);
-  els.sm.hidden = !grid;
-  els.heatmap.hidden = grid;
-  renderAllRegions();
 }
 
 function scopeKey() {
@@ -159,7 +149,10 @@ function syncSingleControl() {
   else { els.single.disabled = false; els.single.checked = state.single; }
 }
 
-async function selectRegion(id, scroll) {
+// scrollTo: the element to bring into view, or null to leave the scroll
+// position alone. Selecting from an All Regions block scrolls to that section's
+// own selected-region plot, not across sections.
+async function selectRegion(id, scrollTo) {
   state.regionId = id;
   if (els.region.value !== id) els.region.value = id;
   currentRegion = await loadRegion(id);
@@ -171,9 +164,8 @@ async function selectRegion(id, scroll) {
   }
   renderSelected();
   renderAllRegions();
-  if (scroll) els.hero.scrollIntoView({ behavior: "smooth", block: "start" });
+  if (scrollTo) scrollTo.scrollIntoView({ behavior: "smooth", block: "start" });
 }
-const onSelect = (id) => selectRegion(id, true);
 
 function scopeLabel() {
   if (state.pooled) return "pooled — all postseasons 2008–2026 · single-year EPA";
@@ -191,6 +183,13 @@ function renderSelected() {
   els.scopeCaption.textContent = state.pooled ? "(all-time)" : "(postseason)";
   els.title.textContent = `${region.name} vs. the world`;
   els.survivalSub.textContent = `${region.name} · ${state.pooled ? "pooled" : state.year}`;
+
+  // Strength-over-time spans every postseason regardless of the selected
+  // season, so it renders before the (season-specific) empty-state return.
+  // It follows the single-year EPA toggle (wma <-> single) like everything else.
+  const strengthMode = state.pooled || state.single ? "single" : "wma";
+  els.strengthSub.textContent = `${region.name} · all postseasons · ${strengthMode === "single" ? "single-year EPA" : "4-year WMA"}`;
+  renderStrength(els.strengthChart, els.strengthLegend, manifest, region, strengthMode);
 
   if (!sc) {
     const rc = manifest.regions_config || {};
@@ -219,7 +218,7 @@ function renderSelected() {
   renderSurvivalChips(sc);
   renderLegend(sc);
   renderHero(els.chart, manifest, region, scope);
-  renderSurvival(els.survivalChart, els.survivalLegend, manifest, region, scope);
+  renderSurvival(els.survivalChart, els.survivalLegend, manifest, region, scope, state.survivalX);
   els.status.textContent = sc.band_local_lo ? "" : `Small sample (n=${sc.n}) — no bootstrap band shown; interpret the curve cautiously.`;
 }
 
@@ -278,27 +277,68 @@ function buildRows(scope) {
   return rows;
 }
 
-function colorDomain(rows) {
-  const vals = [];
-  for (const r of rows) for (const v of r.D_coarse) vals.push(Math.abs(v));
-  if (!vals.length) return 0.1;
-  vals.sort((a, b) => a - b);
-  const q = vals[Math.floor(vals.length * 0.92)];
-  return Math.max(0.08, Math.min(0.4, Math.ceil(q / 0.02) * 0.02));
+// The x-grid each metric's coarse sparkline is sampled on (see
+// pipeline/metrics.py): D over regional percentiles, R over the trustworthy
+// worldwide-percentile band, which narrows in thin seasons.
+function heatmapAxis(metric, scope) {
+  if (metric.id === "D") {
+    const pc = manifest.grid.p_coarse;
+    return { domain: [0, 1], columns: () => pc, title: "team standing — regional percentile" };
+  }
+  const [lo, hi] = survivalPRange(manifest.survival, (manifest.globals[scope] || {}).n || 1);
+  return {
+    domain: [lo, hi],
+    columns: (n) => Array.from({ length: n }, (_, i) => lo + ((hi - lo) * i) / (n - 1)),
+    title: "team strength — worldwide percentile",
+  };
 }
 
-function renderAllRegions() {
-  if (!summary) return;
-  const scope = scopeKey();
-  const all = buildRows(scope);
-  const rows = all.filter((r) => r.n >= state.minN).sort(SORTS[state.sort]);
-  const nLabel = state.pooled ? `avg n/yr ≥ ${state.minN}` : `n ≥ ${state.minN}`;
-  els.arCount.textContent = `${rows.length} of ${all.length} regions · ${nLabel} · ${state.pooled ? "pooled" : state.year}`;
-  const M = colorDomain(rows.length ? rows : all);
-  renderLegendBar(M);
-  const opts = { manifest, rows, M, selectedId: state.regionId, onSelect };
-  if (state.view === "grid") renderSmallMultiples(els.sm, opts);
-  else renderHeatmap(els.heatmap, opts);
+// focusSelector: the selected-region plot in this block's own section, scrolled
+// to when a row or panel is clicked.
+function makeAllRegions(prefix, metric, focusSelector) {
+  const el = (suffix) => document.getElementById(`${prefix}-${suffix}`);
+  const focusEl = document.querySelector(focusSelector);
+  const onSelect = (id) => selectRegion(id, focusEl);
+  const ui = {
+    sort: el("sort-select"), minn: el("minn-range"), minnOut: el("minn-out"),
+    count: el("ar-count"), legend: el("hm-legend"),
+    viewHeatmap: el("view-heatmap"), viewGrid: el("view-grid"),
+    heatmap: el("heatmap"), sm: el("smallmultiples"),
+  };
+  const own = { sort: "mean_desc", minN: +ui.minn.value, view: "heatmap" };
+
+  function setView(v) {
+    own.view = v;
+    const grid = v === "grid";
+    ui.viewGrid.classList.toggle("active", grid);
+    ui.viewHeatmap.classList.toggle("active", !grid);
+    ui.viewGrid.setAttribute("aria-pressed", grid);
+    ui.viewHeatmap.setAttribute("aria-pressed", !grid);
+    ui.sm.hidden = !grid;
+    ui.heatmap.hidden = grid;
+    render();
+  }
+
+  function render() {
+    if (!summary) return;
+    const scope = scopeKey();
+    const all = buildRows(scope);
+    const rows = all.filter((r) => r.n >= own.minN).sort(SORTS[own.sort](metric));
+    const nLabel = state.pooled ? `avg n/yr ≥ ${own.minN}` : `n ≥ ${own.minN}`;
+    ui.count.textContent = `${rows.length} of ${all.length} regions · ${nLabel} · ${state.pooled ? "pooled" : state.year}`;
+    const M = metric.colorDomain(rows.length ? rows : all);
+    renderLegendBar(ui.legend, metric, M);
+    const opts = { manifest, rows, metric, axis: heatmapAxis(metric, scope), M, selectedId: state.regionId, onSelect };
+    if (own.view === "grid") renderSmallMultiples(ui.sm, opts);
+    else renderHeatmap(ui.heatmap, opts);
+  }
+
+  ui.sort.addEventListener("change", () => { own.sort = ui.sort.value; render(); });
+  ui.minn.addEventListener("input", () => { own.minN = +ui.minn.value; ui.minnOut.textContent = ui.minn.value; render(); });
+  ui.viewHeatmap.addEventListener("click", () => setView("heatmap"));
+  ui.viewGrid.addEventListener("click", () => setView("grid"));
+
+  return { render };
 }
 
 // --- region comparison ---
@@ -308,11 +348,13 @@ async function renderCompare() {
   renderComparison(els.cmpChart, manifest, r1, r2, scopeKey());
 }
 
-function renderLegendBar(M) {
+// M is a half-width in the metric's transformed space, so the ramp is symmetric
+// for both (linear points for D, a multiplicative factor for R).
+function renderLegendBar(el, metric, M) {
   const neg = divergingColor(-M, M), mid = divergingColor(0, M), pos = divergingColor(M, M);
-  els.hmLegend.innerHTML =
+  el.innerHTML =
     `<span class="hm-leg-lab easy">easier</span>` +
     `<span class="hm-leg-bar" style="background:linear-gradient(90deg,${neg},${mid},${pos})"></span>` +
     `<span class="hm-leg-lab hard">harder</span>` +
-    `<span class="hm-leg-scale">&plusmn;${Math.round(M * 100)} pts</span>`;
+    `<span class="hm-leg-scale">${metric.legendScale(M)}</span>`;
 }
