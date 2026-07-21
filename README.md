@@ -54,15 +54,34 @@ and the site can be iterated without re-hitting any API.
 
 ## The site
 
+The page is organized into three sections, each with its own metric, plus the
+methodology at the bottom.
+
+**Displacement**
+
 - **Hero displacement curve** — `D(p)` for a selected region and season (or
   pooled): a bold zero line, diverging shading (harder above, easier below), a
   95% bootstrap band, the zero-crossing marker, and a hover readout. Small
   samples (n < 5) omit the band.
-- **All regions** — a sortable **diverging heatmap** (rows = regions, columns =
-  skill-percentile bins) plus a **small-multiples** grid of mini `D(p)` panels on
-  shared axes. Sort by average difficulty, crossover, top-heaviness, or team
-  count; filter by minimum `n`; click any row or panel to focus it in the hero.
-- **Elite-tail survival ratio** — `R(x)` on a log axis for the selected region.
+- **All regions — displacement** — a **diverging heatmap** (rows = regions,
+  columns = regional skill-percentile bins) plus a **small-multiples** grid of
+  mini `D(p)` panels on shared axes, sorted by average `D` by default.
+
+**Depth ratio**
+
+- **Depth ratio curve** — `R(x)` on a log axis for the selected region.
+- **All regions — depth ratio** — the same heatmap and small-multiples pair over
+  `R` instead, on the worldwide-percentile band `R` is trustworthy over and
+  colored on `log R` so `2×` and `½×` sit equally far from neutral, sorted by
+  average `R` by default.
+
+Both All Regions blocks share the same controls (sort by the block's own mean,
+top-heaviness, or team count; filter by minimum `n`; toggle heatmap vs. small
+multiples) and keep independent state; click any row or panel to focus that
+region.
+
+**Comparisons**
+
 - **Strength over time** — a per-season time series for the selected region:
   average `D` (left axis) and average `R` (right axis) as solid dots joined by
   straight segments, with `D = 0` and `R = 1` sharing the zero line. Spans the
@@ -70,12 +89,17 @@ and the site can be iterated without re-hitting any API.
   toggle still switches the strength model. The canceled 2020–21 seasons are
   bridged (2019 joins straight to 2022); any other season the region fielded no
   teams breaks the line.
-- **Methodology** — an in-page explainer of the metric, strength model, region
-  rules, and uncertainty.
+- **Region comparison** — the percentile a given EPA lands at in one region
+  plotted against where it lands in another.
+
+**Methodology** — an in-page explainer of the metric, strength model, region
+rules, and uncertainty.
 
 Frontend modules live in `docs/assets/js/` (`app.js`, `data.js`, `hero.js`,
-`heatmap.js`, `smallmultiples.js`, `survival.js`, `strength.js`, `theme.js`);
-D3 is vendored at `docs/assets/vendor/d3.v7.min.js`.
+`heatmap.js`, `smallmultiples.js`, `metrics.js`, `survival.js`, `strength.js`,
+`comparison.js`, `theme.js`); `metrics.js` holds the `D`/`R` descriptors that
+parameterize the two All Regions blocks. D3 is vendored at
+`docs/assets/vendor/d3.v7.min.js`.
 
 ## Data sources
 

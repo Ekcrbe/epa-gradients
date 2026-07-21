@@ -12,12 +12,19 @@ export function localDisplacementCurve(qLocal, qFine, pFine) {
   return D;
 }
 
+// The worldwide-percentile range R is trustworthy over: capped below 1 so the
+// denominator never hits zero, and backed off further when the season's global
+// n makes the far tail too thin. Mirrors pipeline/metrics.py _survival_p_range,
+// which is also the grid the stored R_coarse sparklines are sampled on.
+export function survivalPRange(cfg, globalN) {
+  return [cfg.p_start, Math.min(1 - Math.max(cfg.min_global_frac, cfg.min_global_teams / globalN), cfg.p_end_cap)];
+}
+
 // Right-tail survival ratio R(x) = (1 - F_region(x)) / (1 - F_global(x)) sampled
 // uniformly in EPA (so the sparse upper tail gets as much x-resolution as the
 // dense middle) across the trustworthy range [Q_global(p_start), Q_global(p_cap)].
 export function survivalCurve(qLocal, qFine, pFine, globalN, cfg, nOut = 600) {
-  const pCap = Math.min(1 - Math.max(cfg.min_global_frac, cfg.min_global_teams / globalN), cfg.p_end_cap);
-  const pStart = cfg.p_start;
+  const [pStart, pCap] = survivalPRange(cfg, globalN);
   if (!(pCap > pStart)) return { x: [], R: [] };
   const xLo = interp1d(pFine, qFine, pStart);
   const xHi = interp1d(pFine, qFine, pCap);
