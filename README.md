@@ -54,7 +54,7 @@ and the site can be iterated without re-hitting any API.
 
 ## The site
 
-The page is organized into three sections, each with its own metric, plus the
+The page is organized into four sections, each with its own metric, plus the
 methodology at the bottom.
 
 **Displacement**
@@ -75,10 +75,23 @@ methodology at the bottom.
   colored on `log R` so `2×` and `½×` sit equally far from neutral, sorted by
   average `R` by default.
 
-Both All Regions blocks share the same controls (sort by the block's own mean,
+All three All Regions blocks share the same controls (sort by the block's own mean,
 top-heaviness, or team count; filter by minimum `n`; toggle heatmap vs. small
 multiples) and keep independent state; click any row or panel to focus that
 region.
+
+**Slope of difficulty**
+
+- **Slope curve** — `S(x) = e_region(x) / e_global(x)`, where `e(x) = E[X − x | X > x]`
+  is the mean excess: not how many teams are above the cutoff, but how far above
+  they sit. Above 1 the climb is steeper than the world's (the teams ahead are
+  further ahead); below 1 they're bunched closer in. A toggle multiplies by the
+  survival ratio, which by `∫ₓ^∞(1−F) = (1−F(x))·e(x)` gives the ratio of the
+  areas under the two survival curves right of `x` — total excess strength above
+  `x` per team. Both share the depth-ratio plot's x-axis toggle.
+- **All regions — slope of difficulty** — the heatmap and small-multiples pair
+  over `S`, following the same weighting toggle. Cells are blank where the region
+  has nobody above that cutoff — there is no gap to measure.
 
 **Comparisons**
 
@@ -96,10 +109,11 @@ region.
 rules, and uncertainty.
 
 Frontend modules live in `docs/assets/js/` (`app.js`, `data.js`, `hero.js`,
-`heatmap.js`, `smallmultiples.js`, `metrics.js`, `survival.js`, `strength.js`,
-`comparison.js`, `theme.js`); `metrics.js` holds the `D`/`R` descriptors that
-parameterize the two All Regions blocks. D3 is vendored at
-`docs/assets/vendor/d3.v7.min.js`.
+`heatmap.js`, `smallmultiples.js`, `metrics.js`, `ratiocurve.js`, `survival.js`,
+`slope.js`, `strength.js`, `comparison.js`, `theme.js`). `metrics.js` holds the
+`D`/`R`/`S` descriptors that parameterize the All Regions blocks, and
+`ratiocurve.js` is the shared renderer behind the depth-ratio and slope curves.
+D3 is vendored at `docs/assets/vendor/d3.v7.min.js`.
 
 ## Data sources
 

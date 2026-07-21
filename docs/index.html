@@ -11,7 +11,7 @@
   <header class="site-header">
     <h1>EPA Gradients</h1>
     <p class="tagline">How locally competitive difficulty compares to the worldwide baseline across team skill &mdash; by FRC region.</p>
-    <p class="intro">Two views of the same question, in <span class="k-hard">red</span> for locally <strong>harder</strong> than the world and <span class="k-easy">blue</span> for <strong>easier</strong>. <a href="#displacement">Displacement</a> shifts a team&rsquo;s standing <em>within its region</em> onto the worldwide percentile scale; <a href="#depth-ratio">depth ratio</a> compares how many teams the region has above each skill level with how many the world does. <a href="#comparisons">Comparisons</a> tracks one region across seasons and puts two regions head-to-head. Pick a region and season below &mdash; every view follows that selection, and clicking a region in either All Regions grid focuses it. See <a href="#methodology">how it&rsquo;s computed</a>.</p>
+    <p class="intro">Three views of the same question, in <span class="k-hard">red</span> where a region is locally <strong>tougher</strong> than the world and <span class="k-easy">blue</span> where it&rsquo;s <strong>gentler</strong>. <a href="#displacement">Displacement</a> shifts a team&rsquo;s standing <em>within its region</em> onto the worldwide percentile scale; <a href="#depth-ratio">depth ratio</a> compares how many teams the region has above each skill level with how many the world does; <a href="#slope">slope of difficulty</a> asks not how many are above you but how far above they sit. <a href="#comparisons">Comparisons</a> tracks one region across seasons and puts two regions head-to-head. Pick a region and season below &mdash; every view follows that selection, and clicking a region in either All Regions grid focuses it. See <a href="#methodology">how it&rsquo;s computed</a>.</p>
     <noscript><p class="card noscript">Unfortunately, this visualizer requires JavaScript, but currently it looks like JavaScript is disabled. Please enable JS for this site, or view the source repository at <a href="https://github.com/Ekcrbe/epa-gradients">https://github.com/Ekcrbe/epa-gradients</a>.</p></noscript>
   </header>
 
@@ -134,7 +134,62 @@
         </div>
         <div id="r-heatmap" class="view-panel"></div>
         <div id="r-smallmultiples" class="view-panel sm-grid" hidden></div>
-        <p class="section-note">The same regions on their depth ratio: <span class="k-hard">red</span> where a region is deeper than the world at that skill level, <span class="k-easy">blue</span> where it&rsquo;s thinner. Sorted by average <strong>R</strong>. Click any row or panel to focus that region.</p>
+        <p class="section-note">The same regions on their depth ratio: <span class="k-hard">red</span> where a region is deeper than the world at that skill level, <span class="k-easy">blue</span> where it&rsquo;s thinner. Blank cells are levels the region has nobody above. Sorted by average <strong>R</strong>. Click any row or panel to focus that region.</p>
+      </div>
+    </section>
+
+    <section class="page-section" id="slope" aria-labelledby="slope-title">
+      <div class="page-section-head">
+        <h2 id="slope-title">Slope of difficulty</h2>
+        <p class="page-section-sub">Not just how many teams are above you, but how far above they sit.</p>
+      </div>
+
+      <div class="slope card" aria-label="Slope of difficulty">
+        <div class="section-head hero-head">
+          <div>
+            <h3>Slope curve</h3>
+            <p class="section-sub" id="slope-sub"></p>
+          </div>
+          <div class="head-right">
+            <div class="stat-chips" id="slope-chips"></div>
+            <label class="plot-toggle"><input type="checkbox" id="slope-weighted"> weight by depth ratio (excess area)</label>
+            <label class="plot-toggle"><input type="checkbox" id="slope-xmode"> x-axis linear in percentile</label>
+          </div>
+        </div>
+        <div id="slope-chart" class="chart-wrap"></div>
+        <div class="legend" id="slope-legend"></div>
+        <p class="section-note" id="slope-note"></p>
+      </div>
+
+      <div class="allregions card" aria-label="All regions by slope of difficulty">
+        <div class="section-head">
+          <h3>All regions &mdash; slope of difficulty</h3>
+          <div class="ar-controls">
+            <label class="ar-ctl">Sort
+              <select id="s-sort-select">
+                <option value="mean_desc">Avg S (steep &rarr; shallow)</option>
+                <option value="mean_asc">Avg S (shallow &rarr; steep)</option>
+                <option value="top_desc">Top-heaviness (elite depth)</option>
+                <option value="n_desc">Team count (n)</option>
+              </select>
+            </label>
+            <label class="ar-ctl">Min n
+              <input type="range" id="s-minn-range" min="1" max="50" step="1" value="20">
+              <output id="s-minn-out" class="year-out">20</output>
+            </label>
+            <div class="viewtoggle" role="group" aria-label="View">
+              <button type="button" id="s-view-heatmap" class="active" aria-pressed="true">Heatmap</button>
+              <button type="button" id="s-view-grid" aria-pressed="false">Small multiples</button>
+            </div>
+          </div>
+        </div>
+        <div class="ar-meta">
+          <p class="section-sub" id="s-ar-count"></p>
+          <div class="hm-legend" id="s-hm-legend"></div>
+        </div>
+        <div id="s-heatmap" class="view-panel"></div>
+        <div id="s-smallmultiples" class="view-panel sm-grid" hidden></div>
+        <p class="section-note">Every region&rsquo;s slope curve: <span class="k-hard">red</span> where the climb above that skill level is steeper than the world&rsquo;s, <span class="k-easy">blue</span> where it&rsquo;s shallower. Follows the weighting toggle on the curve above. Blank cells are levels with no local teams above the cutoff &mdash; there is no gap to measure. Click any row or panel to focus that region.</p>
       </div>
     </section>
 
@@ -192,6 +247,13 @@
 
         <h3>Depth ratio &amp; average difficulty</h3>
         <p><code>R(x) = (1 &minus; F_region(x)) / (1 &minus; F_global(x))</code> compares a region&rsquo;s share of teams above each skill level to the world&rsquo;s, on a log axis over the global 1st&ndash;99th percentile (the 100th is skipped to avoid dividing by zero). Above 1 = deeper than average at that level. The plain mean of <code>R</code> across that same range is each region&rsquo;s single <strong>average difficulty</strong> number &mdash; the most meaningful one-number summary, and what sorts the All Regions views in the Depth ratio section. The All Regions views in the Displacement section sort by mean <code>D</code> instead, so each section ranks regions by its own metric.</p>
+
+        <h3>Slope of difficulty</h3>
+        <p>The depth ratio counts the teams above a cutoff but says nothing about how far above they sit. Let <code>e(x) = E[X &minus; x | X &gt; x]</code> &mdash; the <strong>mean excess</strong>, the average gap between a cutoff <code>x</code> and the teams that clear it. Then:</p>
+        <p class="formula"><code>S(x) = e_region(x) / e_global(x)</code></p>
+        <p><code>S &gt; 1</code> means the teams ahead of <code>x</code> are further ahead locally than worldwide &mdash; a steeper climb, where gaining ground costs more EPA per place. <code>S &lt; 1</code> means they&rsquo;re bunched closer in, so a small gain passes more of them. (&ldquo;Steep&rdquo; here follows the learning-curve sense, not the calculus one: EPA is the independent variable, so a steep climb is a <em>small</em> d(standing)/d(EPA).) Because it divides one gap by another, <code>S</code> is independent of the head count &mdash; it is the piece of the picture <code>R</code> cannot see.</p>
+        <p>The weighted form multiplies by the survival ratio. Since <code>&int;<sub>x</sub><sup>&infin;</sup>(1&minus;F) = (1&minus;F(x))&middot;e(x)</code>, the product <code>S(x)&middot;R(x)</code> is exactly the ratio of the <em>areas under the two survival curves</em> to the right of <code>x</code> &mdash; equivalently <code>E[(X&minus;x)<sup>+</sup>]</code>, the total excess strength above <code>x</code> per team. It folds count and magnitude into one number, at the cost of no longer being independent of <code>R</code>. Both forms are averaged over the same 1st&ndash;99th global-percentile window as <code>mean R</code>; the mean of the product is taken after multiplying, so it is not the product of the means.</p>
+        <p>Where a region has no teams above the cutoff there is no gap to measure, so <code>S</code> is undefined rather than zero &mdash; those points are gaps in the curve and blank cells in the heatmap.</p>
 
         <h3>Data</h3>
         <p>Unitless EPA from <a href="https://www.statbotics.io/">Statbotics</a>: seasons through 2023 from a pinned commit of the <a href="https://github.com/avgupta456/statbotics-csvs">statbotics-csvs</a> dataset, and 2024&ndash;2026 from the Statbotics API. Everything is fetched, normalized, and computed offline; this page loads only precomputed static JSON and never calls an API at runtime.</p>

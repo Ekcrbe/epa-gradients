@@ -92,6 +92,8 @@ def run(out: dict, settings: dict) -> None:
                 "mean_D_local": _r(res["mean_D_local"], 4),
                 "top_heaviness_local": _r(res["top_heaviness_local"], 4),
                 "mean_R": _r(res["mean_R"], 4),
+                "mean_slope": _r(res["mean_slope"], 4),
+                "mean_slope_wt": _r(res["mean_slope_wt"], 4),
             }
             # Summary drives the All Regions views (heatmap / small-multiples /
             # sorting). mean_survival_R -- the region's mean right-tail survival
@@ -105,6 +107,13 @@ def run(out: dict, settings: dict) -> None:
                 "D_coarse": _rlist(res["D_local_coarse"], 4),
                 "R_coarse": _rlist(res["R_coarse"], 3),
                 "mean_survival_R": _r(res["mean_R"], 4),
+                # Slope of difficulty. The weighted (area) form's coarse array is
+                # slope_coarse * R_coarse elementwise, so only the scalar mean --
+                # which is the mean of the product, not the product of means --
+                # needs storing alongside it.
+                "slope_coarse": _rlist(res["slope_coarse"], 3),
+                "mean_slope": _r(res["mean_slope"], 4),
+                "mean_slope_wt": _r(res["mean_slope_wt"], 4),
             }
 
         (regions_dir / f"{rid}.json").write_text(json.dumps({
