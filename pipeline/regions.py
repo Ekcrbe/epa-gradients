@@ -23,6 +23,13 @@ Rules (see README / plan):
     manual assignment via config/pa_overrides.csv.
   * Remaining non-district teams group by state if USA (or state == QC),
     otherwise by country.
+  * A few small states are combined with their neighbors into more
+    competitively coherent regions (COMBINED_REGIONS below), applied after
+    the state grouping above -- so e.g. "Rest of Pennsylvania" (itself
+    already split from FMA) can be one of the states a combined region
+    absorbs. Not official FIRST districts; displayed as type "state". Extend
+    COMBINED_REGIONS as more groupings are added (see also the methodology
+    section in docs/index.html, which lists each one's member states).
 
 Outputs:
   data/interim/team_region.parquet     team -> base_region + flags + canonical loc
@@ -63,6 +70,26 @@ DISTRICT_NAMES = {
     "st_sc": "South Carolina",
     "win": "FIRST Wisconsin",
 }
+
+# Small states combined with their neighbors into a single region, keyed by
+# a slug id -> {name, states}. "states" uses the same 2-letter codes as
+# US_STATES; for PA this refers to the non-FMA "Rest of Pennsylvania" pool
+# (FMA-district PA teams are unaffected). Add more entries here as needed --
+# keep docs/index.html's methodology section's state list in sync.
+COMBINED_REGIONS: dict[str, dict] = {
+    "upper_midwest": {"name": "Upper Midwest", "states": ["MN", "ND", "SD"]},
+    "wow": {"name": "WOW", "states": ["PA", "OH", "WV"]},
+}
+
+
+def _combined_region_map() -> dict[str, str]:
+    """st_<state> -> combined region id, derived from COMBINED_REGIONS."""
+    return {
+        f"st_{state.lower()}": rid
+        for rid, info in COMBINED_REGIONS.items()
+        for state in info["states"]
+    }
+
 
 US_STATES = {
     "AL": "Alabama", "AK": "Alaska", "AZ": "Arizona", "AR": "Arkansas",
@@ -132,6 +159,8 @@ def region_name(region_id: str, country_names: dict[str, str] | None = None) -> 
     country_names = country_names or {}
     if region_id in DISTRICT_NAMES:
         return DISTRICT_NAMES[region_id], "district"
+    if region_id in COMBINED_REGIONS:
+        return COMBINED_REGIONS[region_id]["name"], "state"
     if region_id.startswith("st_"):
         code = region_id[3:].upper()
         name = US_STATES.get(code, code)
@@ -232,6 +261,11 @@ def classify(df: pd.DataFrame, settings: dict) -> tuple[pd.DataFrame, dict]:
             base[team] = None
             unmapped.append({"team": team, "country": country, "state": state})
 
+    combined_map = _combined_region_map()
+    for team, rid in base.items():
+        if rid in combined_map:
+            base[team] = combined_map[rid]
+
     ca_teams = [team for team, rid in base.items() if rid == "ca"]
     ca_unmapped: list[dict] = []
     ca_locations: dict[int, dict] = {}
@@ -286,9 +320,10 @@ def _emit_review(df, dmap, team_region, pa_defunct, unmapped, ca_unmapped, setti
     usa = df[df["year"] == 2026]
     usa = usa[usa["country"] == "USA"]
     districted_states = {s for (c, s) in dmap if c == "USA" and s}
+    combined_states = {s for info in COMBINED_REGIONS.values() for s in info["states"]}
     non_district_states = sorted(
         s for s in usa["state"].dropna().unique()
-        if s not in districted_states and s not in {"PA", "SC"}
+        if s not in districted_states and s not in {"PA", "SC"} and s not in combined_states
     )
     review = {
         "generated_from": "2026 rows (present-day boundaries), applied to all seasons by canonical team state",
@@ -307,6 +342,10 @@ def _emit_review(df, dmap, team_region, pa_defunct, unmapped, ca_unmapped, setti
                                        "teams or to correct a boundary case",
                    "audit": "every CA team's resolved location + assigned region is in "
                             "ca_team_locations.csv for review"},
+            "combined_regions": {
+                rid: f"{info['name']} ({', '.join(info['states'])})"
+                for rid, info in COMBINED_REGIONS.items()
+            },
             "notes": "A few NH teams have null district in 2026; the modal rule assigns all NH -> ne.",
         },
         "pa_defunct_count": len(pa_defunct),

@@ -77,6 +77,18 @@ def test_load_overrides_reads_team_region_csv(tmp_path, monkeypatch):
     assert regions._load_overrides("does_not_exist.csv") == {}
 
 
+def test_combined_region_map():
+    m = regions._combined_region_map()
+    assert m["st_mn"] == m["st_nd"] == m["st_sd"] == "upper_midwest"
+    assert m["st_pa"] == m["st_oh"] == m["st_wv"] == "wow"
+    assert "st_fl" not in m  # untouched states aren't in the map
+
+
+def test_region_naming_combined():
+    assert regions.region_name("upper_midwest") == ("Upper Midwest", "state")
+    assert regions.region_name("wow") == ("WOW", "state")
+
+
 def test_region_naming():
     assert regions.region_name("fim") == ("FIRST in Michigan", "district")
     assert regions.region_name("st_fl") == ("Florida", "state")

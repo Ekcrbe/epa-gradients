@@ -41,20 +41,15 @@
     "KS",
     "KY",
     "LA",
-    "MN",
     "MO",
     "MS",
     "MT",
-    "ND",
     "NE",
     "NV",
     "NY",
-    "OH",
     "OK",
-    "SD",
     "TN",
     "UT",
-    "WV",
     "WY"
   ],
   "specials": {
@@ -72,6 +67,10 @@
       "no_location": "excluded, listed in ca_unmapped_teams.csv",
       "manual_override": "config/ca_overrides.csv always wins, for unresolved teams or to correct a boundary case",
       "audit": "every CA team's resolved location + assigned region is in ca_team_locations.csv for review"
+    },
+    "combined_regions": {
+      "upper_midwest": "Upper Midwest (MN, ND, SD)",
+      "wow": "WOW (PA, OH, WV)"
     },
     "notes": "A few NH teams have null district in 2026; the modal rule assigns all NH -> ne."
   },
