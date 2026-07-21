@@ -11,7 +11,7 @@
   <header class="site-header">
     <h1>EPA Gradients</h1>
     <p class="tagline">How locally competitive difficulty compares to the worldwide baseline across team skill &mdash; by FRC region.</p>
-    <p class="intro">Each curve is a <em>percentile displacement</em> across a team&rsquo;s standing <em>within its region</em>: <span class="k-hard">red</span> means the region is locally <strong>harder</strong> than the world at that level, <span class="k-easy">blue</span> means <strong>easier</strong>. Pick a region and season, or click any region in the grid below to focus it. See <a href="#methodology">how it&rsquo;s computed</a>.</p>
+    <p class="intro">Two views of the same question, in <span class="k-hard">red</span> for locally <strong>harder</strong> than the world and <span class="k-easy">blue</span> for <strong>easier</strong>. <a href="#displacement">Displacement</a> shifts a team&rsquo;s standing <em>within its region</em> onto the worldwide percentile scale; <a href="#depth-ratio">depth ratio</a> compares how many teams the region has above each skill level with how many the world does. <a href="#comparisons">Comparisons</a> tracks one region across seasons and puts two regions head-to-head. Pick a region and season below &mdash; every view follows that selection, and clicking a region in either All Regions grid focuses it. See <a href="#methodology">how it&rsquo;s computed</a>.</p>
   </header>
 
   <main>
@@ -31,89 +31,145 @@
       </div>
     </section>
 
-    <section class="hero" aria-label="Displacement curve">
-      <div class="hero-head">
-        <div>
-          <h2 id="hero-title">&nbsp;</h2>
-          <p id="hero-readout" class="readout">&nbsp;</p>
-        </div>
-        <div class="stat-chips" id="stat-chips"></div>
+    <section class="page-section" id="displacement" aria-labelledby="displacement-title">
+      <div class="page-section-head">
+        <h2 id="displacement-title">Displacement</h2>
+        <p class="page-section-sub">Where a region&rsquo;s teams stand relative to the world, as a shift in percentile.</p>
       </div>
-      <div id="hero-chart" class="chart-wrap"></div>
-      <div class="legend" id="hero-legend"></div>
-    </section>
 
-    <p id="app-status" class="app-status" role="status"></p>
-
-    <section class="survival card" aria-label="Depth ratio (survival ratio)">
-      <div class="section-head hero-head">
-        <div>
-          <h2>Depth ratio</h2>
-          <p class="section-sub" id="survival-sub"></p>
+      <div class="hero" aria-label="Displacement curve">
+        <div class="hero-head">
+          <div>
+            <h3 id="hero-title">&nbsp;</h3>
+            <p id="hero-readout" class="readout">&nbsp;</p>
+          </div>
+          <div class="stat-chips" id="stat-chips"></div>
         </div>
-        <div class="stat-chips" id="survival-chips"></div>
+        <div id="hero-chart" class="chart-wrap"></div>
+        <div class="legend" id="hero-legend"></div>
       </div>
-      <div id="survival-chart" class="chart-wrap"></div>
-      <div class="legend" id="survival-legend"></div>
-      <p class="section-note">Survival ratio R(x) = a region's share of teams above each skill level &divide; the world's, shaded the same red/blue as the curve above. Faint dotted lines mark round worldwide percentiles to orient the (unitless EPA) x-axis. The dotted gold line is the region's mean R across the 1st&ndash;99th percentile &mdash; its overall &ldquo;average difficulty,&rdquo; and what the All Regions views below sort by. Log y-axis, capped where the global tail gets too thin to trust.</p>
-    </section>
 
-    <section class="strength card" aria-label="Strength over time">
-      <div class="section-head hero-head">
-        <div>
-          <h2>Strength over time</h2>
-          <p class="section-sub" id="strength-sub"></p>
-        </div>
-      </div>
-      <div id="strength-chart" class="chart-wrap"></div>
-      <div class="legend" id="strength-legend"></div>
-      <p class="section-note">Each postseason&rsquo;s average displacement <strong>D</strong> (left axis) from the curve at the top of the page and average depth ratio <strong>R</strong> (right axis) from the depth-ratio plot, as solid dots joined by straight segments. <code>D&nbsp;=&nbsp;0</code> and <code>R&nbsp;=&nbsp;1</code> &mdash; world-average difficulty &mdash; share the white line. This plot always spans the full time range regardless of the selected season; the <em>Single-year EPA</em> toggle switches both series between the weighted-average and single-season strength models. The canceled 2020&ndash;21 seasons are bridged, so 2019 joins straight to 2022; a break in the line marks any other season the region fielded no teams.</p>
-    </section>
+      <p id="app-status" class="app-status" role="status"></p>
 
-    <section class="allregions card" aria-label="All regions">
-      <div class="section-head">
-        <h2>All regions</h2>
-        <div class="ar-controls">
-          <label class="ar-ctl">Sort
-            <select id="sort-select">
-              <option value="meanD_desc">Avg difficulty (hard &rarr; easy)</option>
-              <option value="meanD_asc">Avg difficulty (easy &rarr; hard)</option>
-              <option value="top_desc">Top-heaviness (elite depth)</option>
-              <option value="n_desc">Team count (n)</option>
-            </select>
-          </label>
-          <label class="ar-ctl">Min n
-            <input type="range" id="minn-range" min="1" max="50" step="1" value="20">
-            <output id="minn-out" class="year-out">20</output>
-          </label>
-          <div class="viewtoggle" role="group" aria-label="View">
-            <button type="button" id="view-heatmap" class="active" aria-pressed="true">Heatmap</button>
-            <button type="button" id="view-grid" aria-pressed="false">Small multiples</button>
+      <div class="allregions card" aria-label="All regions by displacement">
+        <div class="section-head">
+          <h3>All regions &mdash; displacement</h3>
+          <div class="ar-controls">
+            <label class="ar-ctl">Sort
+              <select id="d-sort-select">
+                <option value="mean_desc">Avg D (hard &rarr; easy)</option>
+                <option value="mean_asc">Avg D (easy &rarr; hard)</option>
+                <option value="top_desc">Top-heaviness (elite depth)</option>
+                <option value="n_desc">Team count (n)</option>
+              </select>
+            </label>
+            <label class="ar-ctl">Min n
+              <input type="range" id="d-minn-range" min="1" max="50" step="1" value="20">
+              <output id="d-minn-out" class="year-out">20</output>
+            </label>
+            <div class="viewtoggle" role="group" aria-label="View">
+              <button type="button" id="d-view-heatmap" class="active" aria-pressed="true">Heatmap</button>
+              <button type="button" id="d-view-grid" aria-pressed="false">Small multiples</button>
+            </div>
           </div>
         </div>
+        <div class="ar-meta">
+          <p class="section-sub" id="d-ar-count"></p>
+          <div class="hm-legend" id="d-hm-legend"></div>
+        </div>
+        <div id="d-heatmap" class="view-panel"></div>
+        <div id="d-smallmultiples" class="view-panel sm-grid" hidden></div>
+        <p class="section-note">Every region&rsquo;s displacement curve at once: <span class="k-hard">red</span> where a region is locally harder than the world at that standing, <span class="k-easy">blue</span> where it&rsquo;s easier. Sorted by average <strong>D</strong>. Click any row or panel to focus that region.</p>
       </div>
-      <div class="ar-meta">
-        <p class="section-sub" id="ar-count"></p>
-        <div class="hm-legend" id="hm-legend"></div>
-      </div>
-      <div id="heatmap" class="view-panel"></div>
-      <div id="smallmultiples" class="view-panel" hidden></div>
     </section>
 
-    <section class="comparison card" aria-label="Region comparison">
-      <div class="section-head">
-        <h2>Region comparison</h2>
-        <div class="ar-controls">
-          <label class="ar-ctl">Region 1 (x-axis)
-            <select id="cmp-region1"></select>
-          </label>
-          <label class="ar-ctl">Region 2 (y-axis)
-            <select id="cmp-region2"></select>
-          </label>
-        </div>
+    <section class="page-section" id="depth-ratio" aria-labelledby="depth-ratio-title">
+      <div class="page-section-head">
+        <h2 id="depth-ratio-title">Depth ratio</h2>
+        <p class="page-section-sub">How many teams a region has above each skill level, compared with the world.</p>
       </div>
-      <div id="cmp-chart" class="chart-wrap"></div>
-      <p class="section-note">For each unitless EPA value, plots the percentile it lands at within Region 1 against the percentile it lands at within Region 2. Above the dashed y&nbsp;=&nbsp;x line, a team of that skill ranks higher in Region 2 than in Region 1 (Region 1 is deeper there); below it, the reverse. Identical regions trace the diagonal exactly.</p>
+
+      <div class="survival card" aria-label="Depth ratio (survival ratio)">
+        <div class="section-head hero-head">
+          <div>
+            <h3>Depth ratio curve</h3>
+            <p class="section-sub" id="survival-sub"></p>
+          </div>
+          <div class="head-right">
+            <div class="stat-chips" id="survival-chips"></div>
+            <label class="plot-toggle"><input type="checkbox" id="survival-xmode"> x-axis linear in percentile</label>
+          </div>
+        </div>
+        <div id="survival-chart" class="chart-wrap"></div>
+        <div class="legend" id="survival-legend"></div>
+        <p class="section-note">How many teams the region has above each skill level, as a multiple of the world&rsquo;s share. <span class="k-hard">Above 1&times;</span> the region is deeper than the world at that level; <span class="k-easy">below</span>, thinner. The gold line is the region&rsquo;s mean R &mdash; its overall &ldquo;average difficulty.&rdquo;</p>
+      </div>
+
+      <div class="allregions card" aria-label="All regions by depth ratio">
+        <div class="section-head">
+          <h3>All regions &mdash; depth ratio</h3>
+          <div class="ar-controls">
+            <label class="ar-ctl">Sort
+              <select id="r-sort-select">
+                <option value="mean_desc">Avg R (hard &rarr; easy)</option>
+                <option value="mean_asc">Avg R (easy &rarr; hard)</option>
+                <option value="top_desc">Top-heaviness (elite depth)</option>
+                <option value="n_desc">Team count (n)</option>
+              </select>
+            </label>
+            <label class="ar-ctl">Min n
+              <input type="range" id="r-minn-range" min="1" max="50" step="1" value="20">
+              <output id="r-minn-out" class="year-out">20</output>
+            </label>
+            <div class="viewtoggle" role="group" aria-label="View">
+              <button type="button" id="r-view-heatmap" class="active" aria-pressed="true">Heatmap</button>
+              <button type="button" id="r-view-grid" aria-pressed="false">Small multiples</button>
+            </div>
+          </div>
+        </div>
+        <div class="ar-meta">
+          <p class="section-sub" id="r-ar-count"></p>
+          <div class="hm-legend" id="r-hm-legend"></div>
+        </div>
+        <div id="r-heatmap" class="view-panel"></div>
+        <div id="r-smallmultiples" class="view-panel sm-grid" hidden></div>
+        <p class="section-note">The same regions on their depth ratio: <span class="k-hard">red</span> where a region is deeper than the world at that skill level, <span class="k-easy">blue</span> where it&rsquo;s thinner. Sorted by average <strong>R</strong>. Click any row or panel to focus that region.</p>
+      </div>
+    </section>
+
+    <section class="page-section" id="comparisons" aria-labelledby="comparisons-title">
+      <div class="page-section-head">
+        <h2 id="comparisons-title">Comparisons</h2>
+        <p class="page-section-sub">The same region across seasons, and two regions against each other.</p>
+      </div>
+
+      <div class="strength card" aria-label="Strength over time">
+        <div class="section-head hero-head">
+          <div>
+            <h3>Strength over time</h3>
+            <p class="section-sub" id="strength-sub"></p>
+          </div>
+        </div>
+        <div id="strength-chart" class="chart-wrap"></div>
+        <div class="legend" id="strength-legend"></div>
+        <p class="section-note">How the region&rsquo;s average displacement <strong>D</strong> (left axis) and average depth ratio <strong>R</strong> (right axis) have moved season to season. Both meet world-average difficulty at the white line &mdash; above it the region was harder than the world that year, below it easier. Spans every postseason regardless of the selected season.</p>
+      </div>
+
+      <div class="comparison card" aria-label="Region comparison">
+        <div class="section-head">
+          <h3>Region comparison</h3>
+          <div class="ar-controls">
+            <label class="ar-ctl">Region 1 (x-axis)
+              <select id="cmp-region1"></select>
+            </label>
+            <label class="ar-ctl">Region 2 (y-axis)
+              <select id="cmp-region2"></select>
+            </label>
+          </div>
+        </div>
+        <div id="cmp-chart" class="chart-wrap"></div>
+        <p class="section-note">Where a team of a given skill would rank in each region. Above the dashed line, that team ranks higher in Region 2 than in Region 1 &mdash; Region 1 is deeper at that level; below it, the reverse. Regions of equal depth trace the diagonal.</p>
+      </div>
     </section>
 
     <details id="methodology" class="methodology card">
@@ -134,7 +190,7 @@
         <p>The worldwide baseline is the distribution of <em>all</em> teams for that season (or pooled across all seasons), including the region itself. The shaded band is a <strong>95% bootstrap</strong> confidence interval (the region resampled against a fixed world). Small regions are noisy: those with fewer than five teams show no band, and <code>n</code> is shown everywhere &mdash; read small samples with the band and count in mind.</p>
 
         <h3>Depth ratio &amp; average difficulty</h3>
-        <p><code>R(x) = (1 &minus; F_region(x)) / (1 &minus; F_global(x))</code> compares a region&rsquo;s share of teams above each skill level to the world&rsquo;s, on a log axis over the global 1st&ndash;99th percentile (the 100th is skipped to avoid dividing by zero). Above 1 = deeper than average at that level. The plain mean of <code>R</code> across that same range is each region&rsquo;s single <strong>average difficulty</strong> number &mdash; the most meaningful one-number summary, and what sorts the All Regions heatmap and small multiples below.</p>
+        <p><code>R(x) = (1 &minus; F_region(x)) / (1 &minus; F_global(x))</code> compares a region&rsquo;s share of teams above each skill level to the world&rsquo;s, on a log axis over the global 1st&ndash;99th percentile (the 100th is skipped to avoid dividing by zero). Above 1 = deeper than average at that level. The plain mean of <code>R</code> across that same range is each region&rsquo;s single <strong>average difficulty</strong> number &mdash; the most meaningful one-number summary, and what sorts the All Regions views in the Depth ratio section. The All Regions views in the Displacement section sort by mean <code>D</code> instead, so each section ranks regions by its own metric.</p>
 
         <h3>Data</h3>
         <p>Unitless EPA from <a href="https://www.statbotics.io/">Statbotics</a>: seasons through 2023 from a pinned commit of the <a href="https://github.com/avgupta456/statbotics-csvs">statbotics-csvs</a> dataset, and 2024&ndash;2026 from the Statbotics API. Everything is fetched, normalized, and computed offline; this page loads only precomputed static JSON and never calls an API at runtime.</p>

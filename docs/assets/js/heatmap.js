@@ -1,19 +1,22 @@
 // Diverging heatmap: rows = regions (pre-sorted/filtered by the caller),
-// columns = coarse skill-percentile bins, color = displacement D centered at 0.
+// columns = coarse skill-percentile bins, color = the section's metric centered
+// on its neutral value (D at 0, R at 1) -- see metrics.js.
 import { divergingColor, isDark } from "./theme.js";
 import { ordinal } from "./format.js";
 
 const truncate = (s, n) => (s.length > n ? s.slice(0, n - 1) + "…" : s);
 
-export function renderHeatmap(el, { manifest, rows, M, selectedId, onSelect }) {
+export function renderHeatmap(el, { manifest, rows, metric, axis, M, selectedId, onSelect }) {
   el.innerHTML = "";
   if (!rows.length) { el.innerHTML = `<div class="empty-state small">No regions meet the current filter.</div>`; return; }
   const tip = document.createElement("div");
   tip.className = "tooltip";
   el.appendChild(tip);
 
-  const pc = manifest.grid.p_coarse;
-  const ncol = pc.length;
+  // Column centers on the metric's own x-grid: D_coarse is sampled on regional
+  // percentiles (p_coarse), R_coarse on the trustworthy worldwide-percentile band.
+  const ncol = manifest.grid.p_coarse.length;
+  const pc = axis.columns(ncol);
   const dark = isDark();
   const width = Math.max(320, el.clientWidth || 820);
   const narrow = width < 560;
@@ -22,15 +25,15 @@ export function renderHeatmap(el, { manifest, rows, M, selectedId, onSelect }) {
   const iW = width - labelW - right;
   const cellW = iW / ncol;
   const height = top + rows.length * rowH + bottom;
-  const x = d3.scaleLinear([0, 1], [labelW, labelW + iW]);
+  const x = d3.scaleLinear(axis.domain, [labelW, labelW + iW]);
 
   const svg = d3.select(el).append("svg")
     .attr("viewBox", `0 0 ${width} ${height}`)
     .attr("role", "img")
-    .attr("aria-label", `Diverging heatmap of displacement across ${rows.length} regions`);
+    .attr("aria-label", `Diverging heatmap of ${metric.label} across ${rows.length} regions`);
 
   const cells = [];
-  rows.forEach((r, ri) => r.D_coarse.forEach((v, j) => cells.push({ ri, j, v })));
+  rows.forEach((r, ri) => metric.values(r).forEach((v, j) => cells.push({ ri, j, t: metric.t(v) })));
 
   svg.append("g").selectAll("rect.cell").data(cells).join("rect")
     .attr("class", "cell")
@@ -38,7 +41,8 @@ export function renderHeatmap(el, { manifest, rows, M, selectedId, onSelect }) {
     .attr("y", (d) => top + d.ri * rowH)
     .attr("width", cellW + 0.6)
     .attr("height", rowH - 1)
-    .attr("fill", (d) => divergingColor(d.v, M, dark));
+    // Cells with no computable value (an empty tail) stay at the neutral midpoint.
+    .attr("fill", (d) => divergingColor(d.t ?? 0, M, dark));
 
   const labels = svg.append("g");
   labels.selectAll("text.hm-label").data(rows).join("text")
@@ -71,10 +75,11 @@ export function renderHeatmap(el, { manifest, rows, M, selectedId, onSelect }) {
     .on("mousemove", function (event, r) {
       const mx = d3.pointer(event, svg.node())[0];
       const j = Math.max(0, Math.min(ncol - 1, Math.floor((mx - labelW) / cellW)));
-      const d = r.D_coarse[j] * 100;
+      const v = metric.values(r)[j];
+      const cls = v != null && metric.isHard(v) ? "tt-hard" : "tt-easy";
+      const shown = v == null ? "—" : `<span class="${cls}">${metric.format(v)}</span>`;
       tip.innerHTML = `<div class="tt-p">${r.name}</div>` +
-        `<div class="tt-row">${ordinal(Math.round(pc[j] * 100))} pct · ` +
-        `<span class="${d >= 0 ? "tt-hard" : "tt-easy"}">${d >= 0 ? "+" : ""}${d.toFixed(1)} pts</span></div>`;
+        `<div class="tt-row">${ordinal(Math.round(pc[j] * 100))} pct · ${shown}</div>`;
       tip.style.opacity = 1;
       const [ex, ey] = d3.pointer(event, el);
       tip.style.left = `${Math.min(ex + 14, width - 180)}px`;
@@ -86,5 +91,5 @@ export function renderHeatmap(el, { manifest, rows, M, selectedId, onSelect }) {
     .call(d3.axisBottom(x).ticks(6).tickFormat((d) => Math.round(d * 100)));
   svg.append("text").attr("class", "axis-title")
     .attr("x", labelW + iW / 2).attr("y", height - 2).attr("text-anchor", "middle")
-    .text("team standing — regional percentile");
+    .text(axis.title);
 }
